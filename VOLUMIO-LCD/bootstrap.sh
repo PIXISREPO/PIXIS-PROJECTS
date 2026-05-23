@@ -3,14 +3,7 @@ set -euo pipefail
 
 STAGE_ROOT="/var/lib/pixis/stage"
 PAYLOAD_DIR="$STAGE_ROOT/VOLUMIO-LCD"
-BASE_URL="${PIXIS_BASE_URL:-}"
-
-usage() {
-  cat <<'EOF'
-Usage:
-  PIXIS_BASE_URL=http://192.168.5.139:8000/PIXIS-PROJECTS/VOLUMIO-LCD bash bootstrap.sh
-EOF
-}
+BASE_URL="https://raw.githubusercontent.com/PIXISREPO/PIXIS-PROJECTS/main/VOLUMIO-LCD"
 
 need_cmd() {
   command -v "$1" >/dev/null 2>&1 || {
@@ -25,17 +18,6 @@ fetch_file() {
   mkdir -p "$(dirname "$dest")"
   curl -fsSL "$BASE_URL/$rel" -o "$dest"
 }
-
-if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
-  usage
-  exit 0
-fi
-
-if [ -z "$BASE_URL" ]; then
-  echo "PIXIS_BASE_URL is not set"
-  usage
-  exit 1
-fi
 
 need_cmd curl
 need_cmd install
