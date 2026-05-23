@@ -1,0 +1,27 @@
+# macOS
+.DS_Store
+._*
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Logs
+*.log
+nohup.out
+bootstrap.log
+
+# Temporary staging or build outputs
+_staging/
+output/
+
+# Editor files
+.vscode/
+.idea/
+
+# Optional binaries and object files
+*.o
+*.obj
+*.pyc
