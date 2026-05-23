@@ -25,3 +25,12 @@ output/
 *.o
 *.obj
 *.pyc
+
+# C build outputs
+*.o
+*.a
+*.so
+*.dll
+*.dylib
+*.exe
+main
