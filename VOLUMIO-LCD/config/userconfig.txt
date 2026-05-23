@@ -1,0 +1,2 @@
+# Add your custom config.txt options to this file, which will be preserved during updates
+dtparam=spi=on

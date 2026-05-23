@@ -1,0 +1,218 @@
+#!/usr/bin/env python3
+import io
+import time
+import json
+import urllib.request
+import urllib.parse
+import urllib.error
+
+from PIL import Image, ImageDraw, ImageFont
+import LCD_2inch8
+
+VOLUMIO_STATE_URL = "http://127.0.0.1:3000/api/v1/getState"
+POLL_SECONDS = 2
+HTTP_TIMEOUT = 5
+
+disp = LCD_2inch8.LCD_2inch8()
+disp.ST7789_Init()
+disp.clear()
+
+WIDTH = disp.width
+HEIGHT = disp.height
+
+try:
+    FONT_BIG = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 20)
+    FONT_MED = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 16)
+    FONT_SM = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12)
+except:
+    FONT_BIG = ImageFont.load_default()
+    FONT_MED = ImageFont.load_default()
+    FONT_SM = ImageFont.load_default()
+
+
+def http_get_json(url):
+    req = urllib.request.Request(url, headers={"User-Agent": "volumio-lcd/1.0"})
+    with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as resp:
+        return json.loads(resp.read().decode("utf-8", errors="replace"))
+
+
+def http_get_bytes(url):
+    req = urllib.request.Request(url, headers={"User-Agent": "volumio-lcd/1.0"})
+    with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as resp:
+        return resp.read()
+
+
+def resolve_albumart_url(albumart):
+    if not albumart:
+        return None
+    if albumart.startswith("http://") or albumart.startswith("https://"):
+        return albumart
+    if albumart.startswith("/"):
+        return "http://127.0.0.1:3000" + albumart
+    return "http://127.0.0.1:3000/" + albumart
+
+
+def fit_cover(img, size):
+    img = img.convert("RGB")
+    src_w, src_h = img.size
+    dst_w, dst_h = size
+
+    scale = max(dst_w / src_w, dst_h / src_h)
+    new_w = int(src_w * scale)
+    new_h = int(src_h * scale)
+
+    img = img.resize((new_w, new_h), Image.LANCZOS)
+
+    left = (new_w - dst_w) // 2
+    top = (new_h - dst_h) // 2
+    return img.crop((left, top, left + dst_w, top + dst_h))
+
+
+def text_width(draw, text, font):
+    try:
+        return draw.textlength(text, font=font)
+    except AttributeError:
+        try:
+            return draw.textsize(text, font=font)[0]
+        except AttributeError:
+            return font.getsize(text)[0]
+
+def trim_text(text, font, max_width, draw):
+    if not text:
+        return ""
+    text = str(text).strip()
+    if text_width(draw, text, font) <= max_width:
+        return text
+    ellipsis = "..."
+    while text:
+        text = text[:-1]
+        if text_width(draw, text + ellipsis, font) <= max_width:
+            return text + ellipsis
+    return ellipsis
+
+
+def render_text_screen(state, message=None):
+    img = Image.new("RGB", (WIDTH, HEIGHT), "black")
+    draw = ImageDraw.Draw(img)
+
+    title = state.get("title") or "Nothing playing"
+    artist = state.get("artist") or state.get("album") or ""
+    service = state.get("service") or state.get("trackType") or ""
+    status = state.get("status") or "stop"
+
+    pad = 12
+    y = 12
+
+    draw.rectangle((0, 0, WIDTH - 1, HEIGHT - 1), outline=(40, 40, 40))
+
+    status_text = status.upper()
+    draw.text((pad, y), status_text, font=FONT_SM, fill=(180, 180, 180))
+    y += 22
+
+    title = trim_text(title, FONT_BIG, WIDTH - pad * 2, draw)
+    draw.text((pad, y), title, font=FONT_BIG, fill="white")
+    y += 34
+
+    if artist:
+        artist = trim_text(artist, FONT_MED, WIDTH - pad * 2, draw)
+        draw.text((pad, y), artist, font=FONT_MED, fill=(200, 200, 200))
+        y += 26
+
+    if service:
+        service = trim_text(service, FONT_SM, WIDTH - pad * 2, draw)
+        draw.text((pad, y), service, font=FONT_SM, fill=(150, 150, 150))
+        y += 20
+
+    if message:
+        y = HEIGHT - 26
+        msg = trim_text(message, FONT_SM, WIDTH - pad * 2, draw)
+        draw.text((pad, y), msg, font=FONT_SM, fill=(255, 180, 120))
+
+    return img
+
+
+def render_cover_screen(state, cover_img):
+    canvas = fit_cover(cover_img, (WIDTH, HEIGHT))
+    draw = ImageDraw.Draw(canvas)
+
+    overlay_h = 54
+    overlay = Image.new("RGBA", (WIDTH, overlay_h), (0, 0, 0, 150))
+    canvas.paste(overlay, (0, HEIGHT - overlay_h), overlay)
+
+    title = state.get("title") or ""
+    artist = state.get("artist") or state.get("album") or ""
+
+    title = trim_text(title, FONT_MED, WIDTH - 16, draw)
+    artist = trim_text(artist, FONT_SM, WIDTH - 16, draw)
+
+    text_y = HEIGHT - overlay_h + 8
+    if title:
+        draw.text((8, text_y), title, font=FONT_MED, fill="white")
+    if artist:
+        draw.text((8, text_y + 22), artist, font=FONT_SM, fill=(220, 220, 220))
+
+    return canvas
+
+
+def display_pil(img):
+    disp.ShowImage(img.convert("RGB"))
+
+
+def fetch_cover_image(albumart_url):
+    raw = http_get_bytes(albumart_url)
+    return Image.open(io.BytesIO(raw))
+
+
+def state_signature(state):
+    return (
+        state.get("status"),
+        state.get("title"),
+        state.get("artist"),
+        state.get("album"),
+        state.get("albumart"),
+        state.get("uri"),
+    )
+
+
+def main():
+    last_sig = None
+
+    while True:
+        try:
+            state = http_get_json(VOLUMIO_STATE_URL)
+            sig = state_signature(state)
+
+            if sig != last_sig:
+                albumart_url = resolve_albumart_url(state.get("albumart"))
+
+                if albumart_url:
+                    try:
+                        cover = fetch_cover_image(albumart_url)
+                        screen = render_cover_screen(state, cover)
+                    except Exception as e:
+                        screen = render_text_screen(state, "art load failed")
+                else:
+                    screen = render_text_screen(state)
+
+                display_pil(screen)
+                last_sig = sig
+
+        except KeyboardInterrupt:
+            break
+        except Exception as e:
+            fallback = render_text_screen({}, "waiting for Volumio")
+            try:
+                display_pil(fallback)
+            except:
+                pass
+
+        time.sleep(POLL_SECONDS)
+
+
+try:
+    main()
+finally:
+    try:
+        disp.LCD_module_exit()
+    except:
+        pass
