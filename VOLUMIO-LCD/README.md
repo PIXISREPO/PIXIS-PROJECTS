@@ -152,5 +152,5 @@ python3 /home/volumio/waveshare-2.8/Python/volumio_lcd.py
 
 ## Developer notes
 
-This repo is intended for a clean-image workflow. The installer handles SPI setup early, before enabling the LCD service. That keeps the hardware prerequisite ahead of runtime service startup which should avoid any import and device-node failures.
+This repo is intended for a clean-image workflow. The installer handles SPI setup early, before enabling the LCD service. That keeps the hardware prerequisite ahead of runtime service startup which should avoid any import and device-node failures. Should you experience problems please post an 'Issue'.
 
