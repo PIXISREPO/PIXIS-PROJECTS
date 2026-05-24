@@ -1,51 +1,44 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
-STAGE_ROOT="/var/lib/pixis/stage"
-PAYLOAD_DIR="$STAGE_ROOT/VOLUMIO-LCD"
 BASE_URL="https://raw.githubusercontent.com/PIXISREPO/PIXIS-PROJECTS/main/VOLUMIO-LCD"
+STAGE_ROOT="${TMPDIR:-/tmp}/pixis/stage"
+PAYLOAD_DIR="$STAGE_ROOT/VOLUMIO-LCD"
 
 need_cmd() {
   command -v "$1" >/dev/null 2>&1 || {
-    echo "Missing required command: $1"
+    echo "Missing required command: $1" >&2
     exit 1
   }
 }
 
-fetch_file() {
-  local rel="$1"
-  local dest="$PAYLOAD_DIR/$rel"
+fetch() {
+  local path="$1"
+  local dest="$2"
   mkdir -p "$(dirname "$dest")"
-  curl -fsSL "$BASE_URL/$rel" -o "$dest"
+  curl -fsSL "$BASE_URL/$path" -o "$dest"
 }
 
 need_cmd curl
-need_cmd install
 need_cmd chmod
+need_cmd mkdir
 
+rm -rf "$PAYLOAD_DIR"
 mkdir -p "$PAYLOAD_DIR"
 
-fetch_file "install.sh"
-fetch_file "systemd/pixis-installer.service"
-fetch_file "systemd/volumio-lcd.service"
-fetch_file "scripts/pixis-installer.sh"
-fetch_file "scripts/PiInstaller.sh"
-fetch_file "config/userconfig.txt"
-fetch_file "config/volumioconfig.txt"
-
-fetch_file "waveshare-2.8/Python/2inch8_LCD_test.py"
-fetch_file "waveshare-2.8/Python/LCD_2inch8.py"
-fetch_file "waveshare-2.8/Python/LCD_2inch8.py.bak"
-fetch_file "waveshare-2.8/Python/Touch_2inch8.py"
-fetch_file "waveshare-2.8/Python/test_fill.py"
-fetch_file "waveshare-2.8/Python/volumio_lcd.py"
-fetch_file "waveshare-2.8/Python/volumio_lcd.py.working"
-fetch_file "waveshare-2.8/Python/pic/LCD_2inch8_1.jpg"
-fetch_file "waveshare-2.8/Python/pic/LCD_2inch8_2.jpg"
-fetch_file "waveshare-2.8/Python/pic/LCD_2inch8_3.jpg"
+fetch "install.sh" "$PAYLOAD_DIR/install.sh"
+fetch "systemd/pixis-installer.service" "$PAYLOAD_DIR/systemd/pixis-installer.service"
+fetch "systemd/volumio-lcd.service" "$PAYLOAD_DIR/systemd/volumio-lcd.service"
+fetch "scripts/pixis-installer.sh" "$PAYLOAD_DIR/scripts/pixis-installer.sh"
+fetch "scripts/PiInstaller.sh" "$PAYLOAD_DIR/scripts/PiInstaller.sh"
+fetch "config/userconfig.txt" "$PAYLOAD_DIR/config/userconfig.txt"
+fetch "config/volumioconfig.txt" "$PAYLOAD_DIR/config/volumioconfig.txt"
+fetch "README.md" "$PAYLOAD_DIR/README.md"
 
 chmod +x "$PAYLOAD_DIR/install.sh"
 chmod +x "$PAYLOAD_DIR/scripts/pixis-installer.sh"
 chmod +x "$PAYLOAD_DIR/scripts/PiInstaller.sh"
 
-exec "$PAYLOAD_DIR/install.sh"
+echo "Bootstrap payload staged at: $PAYLOAD_DIR"
+echo "Run install.sh from the staged payload when ready."
+
