@@ -1,2 +1,7 @@
 # PIXIS-PROJECTS
-Repo for Pixis Projects
+
+This is the Repo for Pixis Projects.
+
+There is only one Project in this repository as of 24th May 2026 and that is for a Volumio 3 instance that shows Album Art and ARTIST-ALBUM-TRACK metadata on a Waveshare 2.8 inch SPI LCD (SKU27579).
+
+More Projects will appear here soon.
