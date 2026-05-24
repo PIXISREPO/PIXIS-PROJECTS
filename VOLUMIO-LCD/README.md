@@ -6,6 +6,20 @@ You can download the latest Volumio 3 Raspberry Pi image from the Volumio 3.x do
 
 https://updates.volumio.org/pi/volumio/3.905/Volumio-3.905-2026-01-28-pi.zip
 
+Burn this to a micro SD card and use it to boot your Raspberry Pi.
+
+The Volumio instance will broadcast a Hotspot SSID 'Volumio xxxx'. Connect your device (Phone, Laptop, Desktop) to that Hotspot and open a browser at volumio.local. 
+
+Follow the simple instructions to connect to your home wifi network, save and reboot the Pi. The Pi should connect to your home network. Change your device wifi from the Volumio Hotspot back to your home network wifi so your device and the Pi are on the same network. Revisit volumio.local on your device and follow the on screen instructions to complete the Volumio setup. 
+
+To ssh into this instance of Volumio go to volumio.local/dev on your device browser and ENABLE ssh. You can then remote in from a terminal on your device using user volumio and password volumio.
+
+Ping google.com to check you have an Internet connection and then start the VOLUMIO-LCD installation with
+
+
+
+A full description of what this does is below.
+
 
 ## Contents
 
@@ -64,7 +78,7 @@ These items must already exist on the Volumio image or will be installed during 
 
 The installer runs automatically on a fresh Volumio 3 image:
 
-1. `bootstrap.sh` downloads the required files from the PIXISREPO GitHub repository.
+1. `bootstrap.sh` downloads the required files from the PIXISREPO GitHub repository and then hands off to install.sh
 2. `install.sh` copies the application files into place.
 3. `install.sh` writes the required SPI boot settings.
 4. `install.sh` installs the Python dependencies.
@@ -72,7 +86,7 @@ The installer runs automatically on a fresh Volumio 3 image:
 6. If the device node is present, `volumio-lcd.service` is enabled and started.
 7. If the device node is not yet present, the installer completes its work, marks that a reboot is required, and exits cleanly.
 
-The bootstrap command:
+The bootstrap command should you wish to review it is 
 
 ```bash
 bash bootstrap.sh
@@ -80,7 +94,7 @@ bash bootstrap.sh
 
 ## Boot config
 
-For a fresh Volumio 3 image, the installer writes the boot configuration directly. The target `/boot/userconfig.txt` should contain:
+For a fresh Volumio 3 image, the installer writes the boot configuration directly. The target `/boot/userconfig.txt` will contain:
 
 ```text
 dtparam=spi=on
