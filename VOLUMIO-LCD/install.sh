@@ -1,11 +1,11 @@
 #!/bin/bash
 set -euo pipefail
 
-STAGE_ROOT="/var/lib/pixis/stage/VOLUMIO-LCD"
-ROOT="$STAGE_ROOT"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 USERCONFIG="/boot/userconfig.txt"
 VOLUMIOCONFIG="/boot/volumioconfig.txt"
-MARKER="/var/lib/pixis/volumio-lcd.reboot-required"
+LOGDIR="/var/log/pixis"
+MARKER="/tmp/pixis/volumio-lcd.reboot-required"
 PACKAGES=(python3-pil python3-spidev python3-numpy python3-gpiozero)
 
 log() {
@@ -37,7 +37,8 @@ for f in \
   "$ROOT/scripts/pixis-installer.sh" \
   "$ROOT/scripts/PiInstaller.sh" \
   "$ROOT/config/userconfig.txt" \
-  "$ROOT/config/volumioconfig.txt"
+  "$ROOT/config/volumioconfig.txt" \
+  "$ROOT/waveshare-2.8"
 do
   require_file "$f"
 done
@@ -46,7 +47,8 @@ install -d /etc/systemd/system
 install -d /usr/local/sbin
 install -d /usr/local/bin
 install -d /boot
-install -d /var/lib/pixis
+install -d "$LOGDIR"
+install -d /tmp/pixis
 
 install -m 0644 "$ROOT/systemd/pixis-installer.service" /etc/systemd/system/pixis-installer.service
 install -m 0644 "$ROOT/systemd/volumio-lcd.service" /etc/systemd/system/volumio-lcd.service
@@ -71,10 +73,10 @@ systemctl daemon-reload
 
 if [ ! -e /dev/spidev0.0 ]; then
   log "SPI device /dev/spidev0.0 not present. Boot config updated; reboot required before enabling volumio-lcd.service."
-  date >> /var/lib/pixis/installer.log
-  echo "PIXIS staged install completed; reboot required for SPI" >> /var/lib/pixis/installer.log
+  date >> "$LOGDIR/installer.log"
+  echo "PIXIS staged install completed; reboot required for SPI" >> "$LOGDIR/installer.log"
   touch "$MARKER"
-  touch /var/lib/pixis/installer.done
+  touch "$LOGDIR/installer.done"
   exit 0
 fi
 
@@ -82,6 +84,7 @@ rm -f "$MARKER"
 systemctl enable volumio-lcd.service
 systemctl restart volumio-lcd.service
 
-date >> /var/lib/pixis/installer.log
-echo "PIXIS staged install completed" >> /var/lib/pixis/installer.log
-touch /var/lib/pixis/installer.done
+date >> "$LOGDIR/installer.log"
+echo "PIXIS staged install completed" >> "$LOGDIR/installer.log"
+touch "$LOGDIR/installer.done"
+
