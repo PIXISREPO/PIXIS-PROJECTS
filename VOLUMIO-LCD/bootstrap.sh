@@ -30,7 +30,6 @@ fetch "scripts/PiInstaller.sh" "$PAYLOAD_DIR/scripts/PiInstaller.sh"
 fetch "config/userconfig.txt" "$PAYLOAD_DIR/config/userconfig.txt"
 fetch "config/volumioconfig.txt" "$PAYLOAD_DIR/config/volumioconfig.txt"
 fetch "README.md" "$PAYLOAD_DIR/README.md"
-fetch "waveshare-2.8/" "$PAYLOAD_DIR/waveshare-2.8/"
 
 chmod +x "$PAYLOAD_DIR/install.sh"
 chmod +x "$PAYLOAD_DIR/scripts/pixis-installer.sh"

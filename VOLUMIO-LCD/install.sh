@@ -26,19 +26,13 @@ ensure_line() {
   grep -qxF "$line" "$file" || echo "$line" >> "$file"
 }
 
-if [ ! -d "$ROOT" ]; then
-  echo "Missing staged payload: $ROOT" >&2
-  exit 1
-fi
-
 for f in \
   "$ROOT/systemd/pixis-installer.service" \
   "$ROOT/systemd/volumio-lcd.service" \
   "$ROOT/scripts/pixis-installer.sh" \
   "$ROOT/scripts/PiInstaller.sh" \
   "$ROOT/config/userconfig.txt" \
-  "$ROOT/config/volumioconfig.txt" \
-  "$ROOT/waveshare-2.8"
+  "$ROOT/config/volumioconfig.txt"
 do
   require_file "$f"
 done
@@ -60,10 +54,6 @@ cp -f "$ROOT/config/volumioconfig.txt" "$VOLUMIOCONFIG"
 
 ensure_line 'dtparam=spi=on' "$USERCONFIG"
 ensure_line 'dtoverlay=spi-spidev' "$USERCONFIG"
-
-install -d /home/volumio/waveshare-2.8
-cp -a "$ROOT/waveshare-2.8/." /home/volumio/waveshare-2.8/
-chown -R volumio:volumio /home/volumio/waveshare-2.8 || true
 
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
