@@ -2,7 +2,7 @@
 
 A fully automated installer and runtime for a Waveshare 2.8" SPI LCD, SKU 27579 on Volumio 3. The display shows album art and playback metadata from the currently selected Volumio music source. This build is for Volumio 3 based on Debian Buster (10). A release for Volumio 4 Debian Bookworm (12) is in the pipeline and will be released here soon. Do not attempt to install this Buster version on Volumio 4 - it will fail.  
 
-Download the latest Volumio 3 Raspberry Pi image either from the Volumio 3.x download links thread on the Volumio community forum, then use this VOLUMIO‑LCD installer to overlay the LCD stack on top.”
+Download the latest Volumio 3 Raspberry Pi image either from the Volumio 3.x download links thread on the Volumio community forum - link below - then use this VOLUMIO‑LCD installer to overlay the LCD stack on top.”
 
 https://updates.volumio.org/pi/volumio/3.905/Volumio-3.905-2026-01-28-pi.zip
 
