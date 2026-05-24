@@ -10,11 +10,13 @@ Burn this to a micro SD card and use it to boot your Raspberry Pi.
 
 The Volumio instance will broadcast a Hotspot SSID 'Volumio xxxx'. Connect your device (Phone, Laptop, Desktop) to that Hotspot and open a browser at volumio.local. 
 
-Follow the simple instructions to connect to your home wifi network, save and reboot the Pi. The Pi should connect to your home network. Change your device wifi from the Volumio Hotspot back to your home network wifi so your device and the Pi are on the same network. Revisit volumio.local on your device and follow the on screen instructions to complete the Volumio setup. 
+Follow the simple instructions to reconnect your Pi to your home wifi network, save and reboot the Pi. The Pi should now automatically connect to your home network. Change your device wifi from the Volumio Hotspot back to your home network wifi so that your device and the Pi are on the same network. Revisit volumio.local on your device and follow the on screen instructions to complete the first time Volumio setup. If you have connected a Monitor to your Pi you can use HDMI as the Audio out. If not then use Headphone as your Audio out.
+
+Install the Radio Paradise Plugin on your Pi and check you can stream Audio to your Audio out device. 
 
 To ssh into this instance of Volumio go to volumio.local/dev on your device browser and ENABLE ssh. You can then remote in from a terminal on your device using user volumio and password volumio.
 
-Ping google.com to check you have an Internet connection and then start the VOLUMIO-LCD installation with
+From a terminal on your device ping google.com to check you have an Internet connection and then start the VOLUMIO-LCD installation on your Pi from your device terminal with
 
 wget -qO- https://raw.githubusercontent.com/PIXISREPO/PIXIS-PROJECTS/main/VOLUMIO-LCD/bootstrap.sh | bash -x
 
