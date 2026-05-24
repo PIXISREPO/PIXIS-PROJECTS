@@ -18,9 +18,12 @@ https://www.youtube.com/watch?v=0KZs--x1uPY
 
 Install the Radio Paradise Plugin on your Pi and check you can stream Audio to your Audio out device. 
 
-The next steps require a command line instruction to your Pi. If you have connected a Monitor and keyboard to your Pi then you can log in using user volumio with password volumio and then proceed from there. If you do not have a Monitor and Keyboard connected to your Pi you will need to ssh into your instance of Volumio. Go to volumio.local/dev on your device browser and ENABLE ssh. You can then remote in from a terminal on your device using user volumio and password volumio.
+The next step requires a command line instruction to your Pi. If you have connected a Monitor and keyboard to your Pi then you can log in using user volumio with password volumio and then proceed from there. If you do not have a Monitor and Keyboard connected to your Pi you will need to ssh into your instance of Volumio from another device on your home network. Go to volumio.local/dev on your device browser and ENABLE ssh. You can then remote in from a terminal on your device using 
 
-From the command line on your Monitor or from a terminal on your device ping google.com to check you have an Internet connection and once confirmed then start the VOLUMIO-LCD installation on your Pi from the command line on your Monitor or your device terminal with
+ssh volumio@volumio.local 
+with password volumio.
+
+From the command line on your Monitor or from the ssh session on a terminal on your device ping google.com to check that the Pi has an Internet connection. Once confirmed you may start the VOLUMIO-LCD installation on your Pi from the command line on your Monitor or your device terminal with
 
 wget -qO- https://raw.githubusercontent.com/PIXISREPO/PIXIS-PROJECTS/main/VOLUMIO-LCD/bootstrap.sh | bash -x
 
