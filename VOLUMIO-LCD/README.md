@@ -27,8 +27,9 @@ From the command line on your Monitor or from the ssh session on a terminal on y
 
 To install the Volumio LCD package on your Pi, run the wget command below. This will download the bootstrap and installer files from the PIXIS Github repo, stage them on the Volumio system and then if the bootstrap download completed successfully it will launch the installer. The installer will prompt for the Volumio password (volumio) when it reaches the privileged system changes, which is normal.
 
-bash
+```bash
 wget -qO- https://raw.githubusercontent.com/PIXISREPO/PIXIS-PROJECTS/main/VOLUMIO-LCD/bootstrap.sh | bash -x && sudo /tmp/pixis/stage/VOLUMIO-LCD/install.sh
+```
 
 A successful installation will complete with a message on the LCD.
 
