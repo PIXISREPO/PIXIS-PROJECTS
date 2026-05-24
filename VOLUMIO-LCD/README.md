@@ -35,7 +35,7 @@ A successful installation will complete with a message on the LCD.
 Volumio LCD
 Waiting for Playback
 
-Go to http://Pi-IP-address in the browser on your device. This is your Volumio 'Controller' and from it you can select navigate the Volumio User Interface and select your preferred music source. 
+Go to http://Pi-IP-address in the browser on your device. This is your Volumio 'Controller' and from it you can select navigate the Volumio User Interface and select your preferred music source. You can also install the Volumio App on your smart phone and 'Control' the Pi Player from your phone App.
 
 A full description of what the wget command does is below.
 
