@@ -16,7 +16,7 @@ A fully automated installer and runtime for a Waveshare 2.8" SPI LCD on Volumio 
 
 ## Overview
 
-This project installs the files needed to run a Waveshare 2.8" SPI LCD on a fresh Volumio 3 image. The display shows album art and track metadata in a simple always-on layout. The installer is designed to run unattended and complete all supported setup steps without user intervention.
+This project installs the files needed to run a Waveshare 2.8" SPI LCD on a fresh Volumio 3 image. The display shows album art and related metadata in a simple always-on layout. The installer is designed to run unattended and complete all supported setup steps without user intervention.
 
 ## Requirements
 
@@ -37,7 +37,7 @@ The following files are fetched by `bootstrap.sh` from the PIXISREPO GitHub repo
 
 ### What the Volumio image needs
 
-These items must already exist on the Volumio image or be installed during the first-run bootstrap:
+These items must already exist on the Volumio image or will be installed during the first-run bootstrap:
 
 - SPI enabled in `/boot/userconfig.txt`
 - `dtoverlay=spi-spidev` in `/boot/userconfig.txt`
@@ -67,7 +67,7 @@ The installer runs automatically on a fresh Volumio 3 image:
 6. If the device node is present, `volumio-lcd.service` is enabled and started.
 7. If the device node is not yet present, the installer completes its work, marks that a reboot is required, and exits cleanly.
 
-Example bootstrap command:
+The bootstrap command:
 
 ```bash
 bash bootstrap.sh
@@ -103,7 +103,7 @@ The main service is `volumio-lcd.service`, which runs:
 /home/volumio/waveshare-2.8/Python/volumio_lcd.py
 ```
 
-Useful checks:
+Should you need them here are some useful checks:
 
 ```bash
 systemctl status volumio-lcd.service --no-pager -l
@@ -111,7 +111,7 @@ journalctl -u volumio-lcd.service -n 50 --no-pager
 ls -l /dev/spidev*
 ```
 
-A healthy system should show the service active and the display in its waiting-for-playback state.
+A healthy system will show the service active and the display in its 'VOLUMIO LCD Waiting-for-playback' state.
 
 ## Security
 
@@ -128,7 +128,7 @@ The installer and runtime assets are treated as immutable source artifacts in th
 
 ### Practical guidance
 
-Keep the source files in the PIXISREPO GitHub repository as the single source of truth. The Volumio target should only receive the staged files and the runtime changes needed to complete installation.
+The source files in the PIXISREPO GitHub repository are the single source of truth. The Volumio target should only receive the staged files and the runtime changes needed to complete installation.
 
 ## Troubleshooting
 
@@ -142,7 +142,7 @@ Typical reasons an install can fail:
 - `/dev/spidev0.0` did not appear after the boot config was applied.
 - The service failed to start after installation.
 
-If the installer reports failure, the message should include the reason and any known next step.
+If the installer reports failure, the message should include the reason and any known fix or next step.
 
 If the Python script fails immediately, run it manually to expose the exact traceback:
 
@@ -152,5 +152,5 @@ python3 /home/volumio/waveshare-2.8/Python/volumio_lcd.py
 
 ## Developer notes
 
-This repo is intended for a clean-image workflow. The installer handles SPI setup early, before enabling the LCD service. That keeps the hardware prerequisite ahead of runtime service startup, which avoids the import and device-node failures seen on the test rig.
+This repo is intended for a clean-image workflow. The installer handles SPI setup early, before enabling the LCD service. That keeps the hardware prerequisite ahead of runtime service startup which should avoid any import and device-node failures.
 
