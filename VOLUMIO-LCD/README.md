@@ -16,7 +16,7 @@ To ssh into this instance of Volumio go to volumio.local/dev on your device brow
 
 Ping google.com to check you have an Internet connection and then start the VOLUMIO-LCD installation with
 
-
+wget -qO- https://raw.githubusercontent.com/PIXISREPO/PIXIS-PROJECTS/main/VOLUMIO-LCD/bootstrap.sh | bash -x
 
 A full description of what this does is below.
 
