@@ -12,6 +12,10 @@ The Volumio instance will broadcast a Hotspot SSID 'Volumio xxxx'. Connect your 
 
 Follow the simple instructions to reconnect your Pi to your home wifi network, save and reboot the Pi. The Pi should now automatically connect to your home network. Change your device wifi from the Volumio Hotspot back to your home network wifi so that your device and the Pi are on the same network. Revisit volumio.local on your device and follow the on screen instructions to complete the first time Volumio setup. If you have connected a Monitor to your Pi you can use HDMI as the Audio out. If not then use Headphone as your Audio out.
 
+A useful short Youtube explainer is here. 
+
+https://www.youtube.com/watch?v=0KZs--x1uPY
+
 Install the Radio Paradise Plugin on your Pi and check you can stream Audio to your Audio out device. 
 
 To ssh into this instance of Volumio go to volumio.local/dev on your device browser and ENABLE ssh. You can then remote in from a terminal on your device using user volumio and password volumio.
