@@ -6,7 +6,6 @@ USERCONFIG="/boot/userconfig.txt"
 VOLUMIOCONFIG="/boot/volumioconfig.txt"
 LOGDIR="/var/log/pixis"
 MARKER="/tmp/pixis/volumio-lcd.reboot-required"
-PACKAGES=(python3-pil python3-spidev python3-numpy python3-gpiozero)
 
 log() {
   echo "[volumio-lcd] $*"
@@ -33,8 +32,8 @@ for f in \
   "$ROOT/scripts/PiInstaller.sh" \
   "$ROOT/config/userconfig.txt" \
   "$ROOT/config/volumioconfig.txt" \
-  "$ROOT/waveshare-2.8/Python/volumio_lcd.py" \
-  "$ROOT/waveshare-2.8/Python/LCD_2inch8.py"
+  "$ROOT/waveshare-2.8/Python/LCD_2inch8.py" \
+  "$ROOT/waveshare-2.8/Python/volumio_lcd.py"
 do
   require_file "$f"
 done
@@ -45,7 +44,7 @@ install -d /usr/local/bin
 install -d /boot
 install -d "$LOGDIR"
 install -d /tmp/pixis
-install -d /home/volumio/waveshare-2.8
+install -d /home/volumio/waveshare-2.8/Python
 
 install -m 0644 "$ROOT/systemd/pixis-installer.service" /etc/systemd/system/pixis-installer.service
 install -m 0644 "$ROOT/systemd/volumio-lcd.service" /etc/systemd/system/volumio-lcd.service
@@ -63,7 +62,8 @@ ensure_line 'dtoverlay=spi-spidev' "$USERCONFIG"
 
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
-apt-get install -y "${PACKAGES[@]}"
+apt-get install -y python3-pil python3-spidev python3-gpiozero
+apt-get install -y python3-numpy || true
 
 systemctl daemon-reload
 

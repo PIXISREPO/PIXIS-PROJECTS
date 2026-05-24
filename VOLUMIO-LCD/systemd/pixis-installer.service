@@ -1,13 +1,13 @@
 [Unit]
-Description=PIXIS first boot installer
-After=multi-user.target
-Wants=network-online.target
+Description=PIXIS installer
 After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=oneshot
 ExecStart=/usr/local/sbin/pixis-installer.sh
-RemainAfterExit=yes
+RemainAfterExit=true
 
 [Install]
 WantedBy=multi-user.target
+

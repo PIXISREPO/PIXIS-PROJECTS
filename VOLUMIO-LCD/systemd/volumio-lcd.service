@@ -1,15 +1,17 @@
 [Unit]
-Description=Volumio LCD album art display
-After=network-online.target volumio.service
-Wants=network-online.target
+Description=Volumio LCD display service
+After=network.target
+Wants=network.target
 
 [Service]
 Type=simple
 User=volumio
+Group=volumio
 WorkingDirectory=/home/volumio/waveshare-2.8/Python
 ExecStart=/usr/bin/python3 /home/volumio/waveshare-2.8/Python/volumio_lcd.py
-Restart=always
+Restart=on-failure
 RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
+
