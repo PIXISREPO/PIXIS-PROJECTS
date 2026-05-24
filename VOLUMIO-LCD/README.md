@@ -1,6 +1,6 @@
 # Volumio LCD Album Art Display
 
-A fully automated installer and runtime for a Waveshare 2.8" SPI LCD on Volumio 3. The display shows album art and playback metadata from the currently selected Volumio music source.
+A fully automated installer and runtime for a Waveshare 2.8" SPI LCD, SKU 27579 on Volumio 3. The display shows album art and playback metadata from the currently selected Volumio music source. This build is for Volumio 3 based on Debian Buster (10). A release for Volumio 4 Debian Bookworm (12) is in the pipeline and will be released here soon. Do not attempt to install this Buster version on Volumio 4 - it will fail.  
 
 ## Contents
 
