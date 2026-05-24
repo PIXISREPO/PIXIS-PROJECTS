@@ -32,7 +32,9 @@ for f in \
   "$ROOT/scripts/pixis-installer.sh" \
   "$ROOT/scripts/PiInstaller.sh" \
   "$ROOT/config/userconfig.txt" \
-  "$ROOT/config/volumioconfig.txt"
+  "$ROOT/config/volumioconfig.txt" \
+  "$ROOT/waveshare-2.8/Python/volumio_lcd.py" \
+  "$ROOT/waveshare-2.8/Python/LCD_2inch8.py"
 do
   require_file "$f"
 done
@@ -43,11 +45,15 @@ install -d /usr/local/bin
 install -d /boot
 install -d "$LOGDIR"
 install -d /tmp/pixis
+install -d /home/volumio/waveshare-2.8
 
 install -m 0644 "$ROOT/systemd/pixis-installer.service" /etc/systemd/system/pixis-installer.service
 install -m 0644 "$ROOT/systemd/volumio-lcd.service" /etc/systemd/system/volumio-lcd.service
 install -m 0755 "$ROOT/scripts/pixis-installer.sh" /usr/local/sbin/pixis-installer.sh
 install -m 0755 "$ROOT/scripts/PiInstaller.sh" /usr/local/bin/PiInstaller.sh
+
+cp -a "$ROOT/waveshare-2.8/." /home/volumio/waveshare-2.8/
+chown -R volumio:volumio /home/volumio/waveshare-2.8 || true
 
 cp -f "$ROOT/config/userconfig.txt" "$USERCONFIG"
 cp -f "$ROOT/config/volumioconfig.txt" "$VOLUMIOCONFIG"
