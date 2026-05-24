@@ -30,8 +30,14 @@ Then to install the Volumio LCD package, run the bootstrap command below. It wil
 bash
 wget -qO- https://raw.githubusercontent.com/PIXISREPO/PIXIS-PROJECTS/main/VOLUMIO-LCD/bootstrap.sh | bash -x && sudo /tmp/pixis/stage/VOLUMIO-LCD/install.sh
 
+A successful installation will complete with a message on the LCD.
 
-A full description of what this does is below.
+Volumio LCD
+Waiting for Playback
+
+Go to http://<your IP> in the browser on your device. This will be your Volumio 'Controller' and from it you can select your preferred music sources. 
+
+A full description of what the wget command does is below.
 
 
 ## Contents
