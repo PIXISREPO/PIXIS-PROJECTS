@@ -4,9 +4,7 @@ A fully automated installer and runtime for a Waveshare 2.8" SPI LCD, SKU 27579 
 
 You can download the latest Volumio 3 Raspberry Pi image from the Volumio 3.x download links thread on the Volumio community forum - using the link below - then use this VOLUMIO‑LCD installer to overlay the LCD stack on top of this Volumio image.”
 
-```bash
 https://updates.volumio.org/pi/volumio/3.905/Volumio-3.905-2026-01-28-pi.zip
-```
 
 Burn this to a micro SD card and use it to boot your Raspberry Pi.
 
