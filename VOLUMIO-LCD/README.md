@@ -35,7 +35,7 @@ A successful installation will complete with a message on the LCD.
 Volumio LCD
 Waiting for Playback
 
-Go to http://<your IP> in the browser on your device. This will be your Volumio 'Controller' and from it you can select your preferred music sources. 
+Go to http://your IP in the browser on your device. This will be your Volumio 'Controller' and from it you can select your preferred music sources. 
 
 A full description of what the wget command does is below.
 
