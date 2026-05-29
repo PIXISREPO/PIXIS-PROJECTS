@@ -2,14 +2,14 @@
 
 This repository contains the Python touch capture code used to interface a CST328 capacitive touch controller with a Waveshare 2.8" LCD setup on Raspberry Pi.
 
-The final goal was not simply to read touch data, but to build a robust capture pipeline that reliably identifies valid touches, maps them to artwork zones, and keeps enough tolerance for real-world finger placement and controller timing.
+The final goal was not simply to read touch data, but to build a robust capture pipeline that reliably identifies valid touches, maps them to specific zones on the LCD and keeps enough tolerance for real-world finger placement and controller timing.
 
 ## What this project does
 
 The code:
 - Detects touch events from the CST328.
 - Validates the interrupt line.
-- Waits for the CST328 report to become ready.
+- Waits for the CST328 X, Y coordinates report to become ready.
 - Reads stable X/Y coordinates.
 - Maps the touch to a named artwork zone.
 - Logs one accepted touch event per capture.
