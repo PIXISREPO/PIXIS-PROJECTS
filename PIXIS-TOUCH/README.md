@@ -1,6 +1,6 @@
 # CST328 Touch Capture for Waveshare 2.8" LCD
 
-This repository contains the Python touch capture code used to interface a CST328 capacitive touch controller with a Waveshare 2.8" LCD setup on Raspberry Pi.
+This repository contains the Python touch capture code used to interface the CST328 capacitive touch controller on a Waveshare 2.8" Capacitive Touch LCD (SKU 27579) connected by SPI and I2C to a Raspberry Pi SBC.
 
 The final goal was not simply to read touch data, but to build a robust capture pipeline that reliably identifies valid touches, maps them to specific zones on the LCD and keeps enough tolerance for real-world finger placement and controller timing.
 
