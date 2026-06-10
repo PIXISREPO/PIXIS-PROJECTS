@@ -2,7 +2,7 @@
 
 A fully automated installer and runtime for a Waveshare 2.8" SPI LCD, SKU 27579 on Volumio 3. The display shows album art and playback metadata from the currently selected Volumio music source. This build is for Volumio 3 based on Debian Buster (10). A release for Volumio 4 Debian Bookworm (12) is in the pipeline and will be released here soon. Do not attempt to install this Buster version on Volumio 4 - it will fail.  
 
-You can download the latest Volumio 3 Raspberry Pi image from the Volumio 3.x download links thread on the Volumio community forum - using the link below - then use this VOLUMIO‑LCD installer to overlay the LCD stack on top of this Volumio image.”
+You can download the latest Volumio 3 Raspberry Pi image from the Volumio 3.x download links thread on the Volumio community forum - using the link below - then use this VOLUMIO‑LCD installer to overlay this LCD stack on top of the Volumio image.”
 
 https://updates.volumio.org/pi/volumio/3.905/Volumio-3.905-2026-01-28-pi.zip
 
@@ -10,13 +10,13 @@ Burn this to a micro SD card and use it to boot your Raspberry Pi.
 
 The Volumio instance will broadcast a Hotspot SSID 'Volumio xxxx'. Connect your device (Phone, Laptop, Desktop) to that Hotspot and open a browser at volumio.local. 
 
-Follow the simple instructions to reconnect your Pi to your home wifi network, save and reboot the Pi. The Pi should now automatically connect to your home network. Change your device wifi from the Volumio Hotspot back to your home network wifi so that your device and the Pi are on the same network. Revisit volumio.local on your device and follow the on screen instructions to complete the first time Volumio setup. If you have connected a Monitor to your Pi you can use HDMI as the Audio out. If not then use Headphone as your Audio out.
+Follow the simple instructions to reconnect your Pi to your home wifi network, save and reboot the Pi. The Pi should now automatically connect to your home network. Change your device wifi from the Volumio Hotspot back to your home network wifi so that your device and the Pi are on the same network. Revisit volumio.local on your device and follow the on screen instructions to complete the first time Volumio setup. If you have connected a Monitor to your Pi and your Monitor has speakers then you can select HDMI as Audio Out. If not then for now use Headphone as Audio Out.
 
 A useful short Youtube explainer is here. 
 
 https://www.youtube.com/watch?v=0KZs--x1uPY
 
-Install the Radio Paradise Plugin on your Pi and check you can stream Audio to your Audio out device. 
+Install the Volumio Plugin for Radio Paradise and check you can stream Audio to your Audio Out device. 
 
 The next step requires a command line instruction to your Pi. If you have connected a Monitor and keyboard to your Pi then you can log in using user volumio with password volumio and then proceed from there. If you do not have a Monitor and Keyboard connected to your Pi you will need to ssh into your instance of Volumio from another device on your home network. Go to volumio.local/dev on your device browser and ENABLE ssh. You can then remote in from a terminal on your device using 
 
@@ -25,7 +25,7 @@ ssh volumio@volumio.local
 ```
 with password volumio.
 
-From the command line on your Monitor or from the ssh session on a terminal on your device ping google.com to check that the Pi has an Internet connection. Once confirmed you may start the VOLUMIO-LCD installation on your Pi from the command line on your Monitor or your device terminal.
+From the command line on your Monitor or from the ssh session on a terminal on your device, ping google.com to check that the Pi has an Internet connection. Once confirmed you may start the VOLUMIO-LCD installation on your Pi from the command line on your Monitor or your device terminal.
 
 To install the Volumio LCD package on your Pi, run the wget command below. This will download the bootstrap and installer files from the PIXIS Github repo, stage them on the Volumio system and then if the bootstrap download completed successfully it will launch the installer. The installer will prompt for the Volumio password (volumio) when it reaches the privileged system changes, which is normal.
 
@@ -38,7 +38,7 @@ A successful installation will complete with a message on the LCD.
 Volumio LCD
 Waiting for Playback
 
-Go to http://Pi-IP-address in the browser on your device. This is your Volumio 'Controller' and from it you can navigate the Volumio User Interface and select your preferred music source. You can also install the Volumio App on your smart phone and 'Control' the Pi Player from your phone App.
+Go to http://Pi-IP-address in the browser on your device. This browser window is your Volumio 'Controller' and from it you can navigate the Volumio User Interface and select your preferred music source. You can also install the Volumio App on your smart phone and 'Control' the Pi Player from that App.
 
 A full description of what the wget command does is below.
 
