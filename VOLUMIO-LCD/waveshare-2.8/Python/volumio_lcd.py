@@ -11,9 +11,9 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 from LCD_2inch8 import LCD_2inch8
 
-VOLUMIO_BASE = "http://localhost:3000"
-STATE_URL = f"{VOLUMIO_BASE}/api/v1/getstate"
-DEFAULT_COVER_URL = f"{VOLUMIO_BASE}/albumart"
+MOODE_BASE = "http://localhost"
+STATE_URL = f"{MOODE_BASE}/command/?cmd=status"
+DEFAULT_COVER_URL = "http://localhost/coverart.php"
 
 WIDTH = 240
 HEIGHT = 320
@@ -44,7 +44,7 @@ def truncate_text(draw, text, font, max_width):
     if not text:
         return ""
 
-    text_width, _ = draw.textsize(text, font=font)
+    bbox = font.getbbox(text); text_width = bbox[2] - bbox[0]
     if text_width <= max_width:
         return text
 
@@ -55,7 +55,7 @@ def truncate_text(draw, text, font, max_width):
     while lo <= hi:
         mid = (lo + hi) // 2
         candidate = text[:mid].rstrip() + ellipsis
-        candidate_width, _ = draw.textsize(candidate, font=font)
+        bbox = font.getbbox(candidate); candidate_width = bbox[2] - bbox[0]
         if candidate_width <= max_width:
             best = candidate
             lo = mid + 1
@@ -66,9 +66,72 @@ def truncate_text(draw, text, font, max_width):
 
 
 def get_state():
-    r = session.get(STATE_URL, timeout=HTTP_TIMEOUT)
-    r.raise_for_status()
-    return r.json()
+    SONG_URL = "http://localhost/command/?cmd=currentsong"
+    STATUS_URL = "http://localhost/command/?cmd=status"
+    RP_API_URL = "https://api.radioparadise.com/api/now_playing?chan=0"
+
+    song_r = session.get(SONG_URL, timeout=HTTP_TIMEOUT)
+    song_r.raise_for_status()
+    song_data = song_r.json()
+
+    status_r = session.get(STATUS_URL, timeout=HTTP_TIMEOUT)
+    status_r.raise_for_status()
+    status_data = status_r.json()
+
+    # Extract state: play/pause/stop
+    status = "stop"
+    for v in status_data.values():
+        if v.startswith("state: "):
+            status = v.replace("state: ", "").strip()
+            break
+
+    # Extract station name
+    station = ""
+    for v in song_data.values():
+        if v.startswith("Name: "):
+            station = v.replace("Name: ", "").strip()
+            break
+
+    # Radio Paradise — use their API for rich metadata + art
+    if "radio paradise" in station.lower():
+        try:
+            rp = session.get(RP_API_URL, timeout=HTTP_TIMEOUT)
+            rp.raise_for_status()
+            rp_data = rp.json()
+            return {
+                "status": status,
+                "artist": rp_data.get("artist", ""),
+                "title": rp_data.get("title", ""),
+                "album": rp_data.get("album", ""),
+                "albumart": rp_data.get("cover", ""),
+            }
+        except:
+            pass
+
+    # Generic internet radio — parse Title field
+    raw_title = ""
+    for v in song_data.values():
+        if v.startswith("Title: "):
+            raw_title = v.replace("Title: ", "").strip()
+            break
+
+    if " - " in raw_title:
+        artist, title = raw_title.split(" - ", 1)
+    else:
+        artist = ""
+        title = raw_title
+
+    # Try moOde radio logo as art
+    import urllib.parse
+    logo_url = "http://localhost/imagesw/radio-logos/" + urllib.parse.quote(station + ".jpg")
+
+    return {
+        "status": status,
+        "artist": artist.strip(),
+        "title": title.strip(),
+        "album": station,
+        "albumart": logo_url,
+    }
 
 
 def resolve_albumart_url(state):
@@ -80,7 +143,8 @@ def resolve_albumart_url(state):
     if albumart.startswith("http://") or albumart.startswith("https://"):
         return albumart
 
-    return urljoin(VOLUMIO_BASE, albumart)
+    return DEFAULT_COVER_URL
+
 
 
 def fetch_cover_image(state):
@@ -105,7 +169,7 @@ def render_cover_screen(state, cover_img):
         cover = Image.new("RGB", (WIDTH, ART_H), (30, 30, 30))
         draw_cover = ImageDraw.Draw(cover)
         msg = "No Cover Art"
-        tw, th = draw_cover.textsize(msg, font=FONT_INFO)
+        bbox = FONT_INFO.getbbox(msg); tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
         draw_cover.text(
             ((WIDTH - tw) // 2, (ART_H - th) // 2),
             msg,
@@ -142,11 +206,11 @@ def render_idle_screen():
     canvas = Image.new("RGB", (WIDTH, HEIGHT), "black")
     draw = ImageDraw.Draw(canvas)
 
-    line1 = "Volumio LCD"
+    line1 = "PIXIS LCD"
     line2 = "Waiting for playback"
 
-    w1, h1 = draw.textsize(line1, font=FONT_ARTIST)
-    w2, h2 = draw.textsize(line2, font=FONT_INFO)
+    bbox1 = FONT_ARTIST.getbbox(line1); w1, h1 = bbox1[2] - bbox1[0], bbox1[3] - bbox1[1]
+    bbox2 = FONT_INFO.getbbox(line2); w2, h2 = bbox2[2] - bbox2[0], bbox2[3] - bbox2[1]
 
     y = 130
     draw.text(((WIDTH - w1) // 2, y), line1, font=FONT_ARTIST, fill="white")

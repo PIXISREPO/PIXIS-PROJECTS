@@ -1,0 +1,17 @@
+[Unit]
+Description=PIXIS LCD display service
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=%i
+Group=%i
+EnvironmentFile=/home/%i/waveshare-2.8/Python/config.env
+WorkingDirectory=/home/%i/waveshare-2.8/Python
+ExecStart=/usr/bin/python3 /home/%i/waveshare-2.8/Python/${PLAYER}_lcd.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

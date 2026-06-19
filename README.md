@@ -1,13 +1,15 @@
 # PIXIS-PROJECTS
 
-This is the Repo for Pixis Projects.
+This is the PIXIS Projects repository.
 
-There are only two Projects in this repository as of 29th May 2026 and they are:
+PIXIS is an open source hardware and software modular platform for Raspberry Pi and similar SBC-based projects. The project is designed to support multiple use cases, including audio, smart home hubs, dashboards, and custom embedded builds.
 
-1: A Volumio 3 instance that shows Album Art and ARTIST-ALBUM-TRACK metadata on a Waveshare 2.8 inch SPI LCD (SKU27579). 
+These can be built on a Pixis CB-1 Carrier Board with a Pi Zero 2W or Pi 3A+ or a CB-2 Carrier Board with a Pi 3 or Pi 5, housed in the Pixis Extruded Aluminium case available from the Pixis Store at https://pixis.uk
 
-2: A Touch Screen zone capture script for the above. Capture only at this stage. A UI is WIP. 
+## Projects
 
-These can be built on a Pixis CB-1 Carrier Board with a Pi Zero 2W or Pi 3A+ or a CB-2 Carrier Board with a Pi 3 or Pi 5 and housed in the Pixis Extruded Aluminium case available from the Pixis Store at https://pixis.uk
+### 1. VOLUMIO-LCD
+Displays album art and ARTIST / ALBUM / TRACK metadata on a Waveshare 2.8 inch SPI LCD (SKU27579). Supports both Volumio 3 and moOde Audio. The installer prompts for player selection and configures the service automatically.
 
-More Projects will appear here soon.
+### 2. VOLUMIO-TOUCH
+Touch screen zone capture script for the Waveshare display. Capture only at this stage; a full UI is WIP.
