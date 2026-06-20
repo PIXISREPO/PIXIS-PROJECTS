@@ -17,7 +17,7 @@ fetch() {
 
 fetch "VOLUMIO-LCD/install.sh" "$STAGE/install.sh"
 fetch "VOLUMIO-LCD/systemd/pixis-installer.service" "$STAGE/systemd/pixis-installer.service"
-fetch "VOLUMIO-LCD/systemd/volumio-lcd.service" "$STAGE/systemd/volumio-lcd.service"
+fetch "VOLUMIO-LCD/systemd/volumio-lcd@.service" "$STAGE/systemd/volumio-lcd@.service"
 fetch "VOLUMIO-LCD/scripts/pixis-installer.sh" "$STAGE/scripts/pixis-installer.sh"
 fetch "VOLUMIO-LCD/scripts/PiInstaller.sh" "$STAGE/scripts/PiInstaller.sh"
 fetch "VOLUMIO-LCD/config/userconfig.txt" "$STAGE/config/userconfig.txt"
