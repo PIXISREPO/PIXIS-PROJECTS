@@ -4,7 +4,7 @@ This is the PIXIS Projects repository.
 
 PIXIS is an open source hardware and software modular platform for Raspberry Pi and similar SBC-based projects. The project is designed to support multiple use cases, including audio, smart home hubs, dashboards, and custom embedded builds.
 
-These can be built on a Pixis CB-1 Carrier Board with a Pi Zero 2W or Pi 3A+ or a CB-2 Carrier Board with a Pi 3, Pi 4 or Pi 5, housed in the Pixis Extruded Aluminium case available from the Pixis Store at https://pixis.uk
+These can be built on a Pixis CB-1 Carrier Board with a Pi Zero 2W or Pi 3A+ or a CB-2 Carrier Board with a Pi 3, Pi 4 or Pi 5, housed in the Pixis Extruded Aluminium case available from the Pixis Store at https://pixis.uk. Supports Raspberry Pi compatible Audio HATS and Waveshare 2.8 inch SPI and DSI LCDs.
 
 ## Projects
 
