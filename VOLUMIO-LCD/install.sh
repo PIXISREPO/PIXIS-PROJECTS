@@ -27,7 +27,7 @@ ensure_line() {
 
 for f in \
   "$ROOT/systemd/pixis-installer.service" \
-  "$ROOT/systemd/volumio-lcd.service" \
+  "$ROOT/systemd/volumio-lcd@.service" \
   "$ROOT/scripts/pixis-installer.sh" \
   "$ROOT/scripts/PiInstaller.sh" \
   "$ROOT/config/userconfig.txt" \
@@ -47,7 +47,7 @@ install -d /tmp/pixis
 install -d /home/volumio/waveshare-2.8/Python
 
 install -m 0644 "$ROOT/systemd/pixis-installer.service" /etc/systemd/system/pixis-installer.service
-install -m 0644 "$ROOT/systemd/volumio-lcd.service" /etc/systemd/system/volumio-lcd.service
+install -m 0644 "$ROOT/systemd/volumio-lcd@.service" /etc/systemd/system/volumio-lcd@.service
 install -m 0755 "$ROOT/scripts/pixis-installer.sh" /usr/local/sbin/pixis-installer.sh
 install -m 0755 "$ROOT/scripts/PiInstaller.sh" /usr/local/bin/PiInstaller.sh
 
@@ -68,7 +68,7 @@ apt-get install -y python3-numpy || true
 systemctl daemon-reload
 
 if [ ! -e /dev/spidev0.0 ]; then
-  log "SPI device /dev/spidev0.0 not present. Boot config updated; reboot required before enabling volumio-lcd.service."
+  log "SPI device /dev/spidev0.0 not present. Boot config updated; reboot required before enabling volumio-lcd@.service."
   date >> "$LOGDIR/installer.log"
   echo "PIXIS staged install completed; reboot required for SPI" >> "$LOGDIR/installer.log"
   touch "$MARKER"
@@ -77,8 +77,8 @@ if [ ! -e /dev/spidev0.0 ]; then
 fi
 
 rm -f "$MARKER"
-systemctl enable volumio-lcd.service
-systemctl restart volumio-lcd.service
+systemctl enable volumio-lcd@.service
+systemctl restart volumio-lcd@.service
 
 date >> "$LOGDIR/installer.log"
 echo "PIXIS staged install completed" >> "$LOGDIR/installer.log"
