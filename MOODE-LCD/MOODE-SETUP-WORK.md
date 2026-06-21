@@ -208,3 +208,105 @@ When building SPI-LCD-TOUCH or other Player LCD projects:
   - Installer created with SPI + waveshare installation
   - Backlight uses DigitalOutputDevice (no PWM flicker)
 
+- 2026-06-21: Auto-resume playback after reboot documented
+  - Tested: LCD shows correct album art and metadata on reboot
+  - Issue: Playback paused after reboot, requires manual Play tap
+  - Fix: mpd-autoplay.service (Option 1, recommended)
+
+---
+
+## Auto-Resume Playback After Reboot
+
+By default, MPD saves its state (playlist, position, volume) on shutdown but deliberately boots into a **paused** state. After a reboot the LCD correctly shows album art and metadata, but playback does not resume automatically. Two approaches fix this.
+
+---
+
+### Option 1 — `mpc play` on Boot via systemd (Recommended)
+
+A small oneshot systemd service fires `mpc play` after MPD has fully started. This is the preferred approach because it works for both local files and live radio streams without touching moOde's MPD configuration.
+
+**Create the service file:**
+
+```bash
+sudo nano /etc/systemd/system/mpd-autoplay.service
+```
+
+**Paste the following:**
+
+```ini
+[Unit]
+Description=MPD Auto Play on Boot
+After=mpd.service
+Requires=mpd.service
+
+[Service]
+Type=oneshot
+ExecStartPre=/bin/sleep 5
+ExecStart=/usr/bin/mpc play
+User=mpd
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+```
+
+**Enable and start the service:**
+
+```bash
+sudo systemctl enable mpd-autoplay.service
+sudo systemctl start mpd-autoplay.service
+```
+
+The `sleep 5` delay gives MPD time to fully initialise before the play command fires. This value can be tuned down if boot completes faster on your hardware.
+
+> **Radio streams:** MPD saves the stream URL and playlist position across reboots. `mpc play` will reconnect to the last stream automatically.
+
+---
+
+### Option 2 — Disable `restore_paused` in `mpd.conf`
+
+MPD has a built-in `restore_paused` setting that controls boot behaviour. If set to `"yes"`, MPD will always boot paused.
+
+**Check the current setting:**
+
+```bash
+grep -i restore /etc/mpd.conf
+```
+
+**If `restore_paused "yes"` is present**, change it to `"no"`:
+
+```bash
+sudo nano /etc/mpd.conf
+# Change:  restore_paused "yes"
+# To:      restore_paused "no"
+```
+
+**Restart MPD to apply:**
+
+```bash
+sudo systemctl restart mpd
+```
+
+> **Note:** Editing `mpd.conf` directly may conflict with moOde's internal configuration management. Option 1 is safer for moOde installations as it does not modify any moOde-managed files.
+
+---
+
+### Comparison
+
+| | Option 1 (systemd service) | Option 2 (mpd.conf) |
+|---|---|---|
+| Works for streams | ✅ Yes | ✅ Yes |
+| Works for local files | ✅ Yes | ✅ Yes |
+| Touches moOde config | ❌ No | ⚠️ Yes |
+| Survives moOde updates | ✅ Yes | ⚠️ May be overwritten |
+| Adjustable delay | ✅ Yes (sleep N) | ❌ No |
+| Recommended | ✅ **Yes** | Only if Option 1 fails |
+
+---
+
+### Test Results
+
+- Reboot confirmed: LCD shows correct album art and metadata on return ✅
+- Radio stream (Flux FM Electronic Chillout) reconnects correctly ✅
+- API calls (`currentsong`, `status`) responding correctly over localhost ✅
+- LCD and web UI displaying identical playback state ✅
