@@ -38,22 +38,19 @@ fi
 echo "[INFO] Checking Waveshare 2.8 driver..."
 
 if [[ ! -d "${WAVESHARE_DIR}" ]]; then
-    echo "[INFO] Waveshare driver not found. Downloading..."
+    echo "[INFO] Waveshare driver not found. Cloning from GitHub..."
 
-    cd /tmp
-    wget -q "https://files.waveshare.com/wiki/2.8inch-LCD-for-Raspberry-Pi/2.8inch_LCD_for_Raspberry_Pi.zip" \
-        -O waveshare-2.8.zip || {
-        echo "[ERROR] Failed to download Waveshare driver ZIP"
-        echo "[INFO] Please download manually from:"
-        echo "       https://www.waveshare.com/wiki/2.8inch_LCD_for_Raspberry_Pi"
+    git clone --depth=1 https://github.com/waveshare/2.8inch_LCD_for_Raspberry_Pi.git /tmp/waveshare-2.8-src || {
+        echo "[ERROR] Failed to clone Waveshare driver from GitHub"
+        echo "[INFO]  Check internet connectivity and try again."
         exit 1
     }
 
-    unzip -q waveshare-2.8.zip -d /tmp/waveshare-extracted
-
-    PYTHON_SRC="$(find /tmp/waveshare-extracted -type d -name Python | head -1)"
+    PYTHON_SRC="$(find /tmp/waveshare-2.8-src -type d -name Python | head -1)"
     if [[ -z "$PYTHON_SRC" ]]; then
-        echo "[ERROR] Python directory not found in Waveshare ZIP"
+        echo "[ERROR] Python directory not found in cloned Waveshare repo"
+        echo "[INFO]  Repo contents:"
+        ls /tmp/waveshare-2.8-src/
         exit 1
     fi
 
@@ -61,8 +58,7 @@ if [[ ! -d "${WAVESHARE_DIR}" ]]; then
     cp -r "$PYTHON_SRC" /home/moode/waveshare-2.8/Python
     chown -R moode:moode /home/moode/waveshare-2.8
 
-    rm -f /tmp/waveshare-2.8.zip
-    rm -rf /tmp/waveshare-extracted
+    rm -rf /tmp/waveshare-2.8-src
 
     echo "[INFO] Waveshare driver installed to ${WAVESHARE_DIR}"
 else
