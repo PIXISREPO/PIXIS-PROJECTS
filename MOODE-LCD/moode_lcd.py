@@ -65,6 +65,32 @@ def get_hostname():
         return "moode"
 
 
+def api_get(url):
+    """Fetch a Moode API URL and return parsed JSON dict, or {} on any error."""
+    try:
+        r = session.get(url, timeout=HTTP_TIMEOUT)
+        r.raise_for_status()
+        text = r.text.strip()
+        if not text:
+            return {}
+        return r.json()
+    except Exception:
+        return {}
+
+
+def values_of(d):
+    """Return all string values from a numeric-keyed dict."""
+    return list(d.values()) if isinstance(d, dict) else []
+
+
+def find_prefixed(d, prefix):
+    """Return the value after stripping prefix, or '' if not found."""
+    for v in values_of(d):
+        if isinstance(v, str) and v.startswith(prefix):
+            return v[len(prefix):].strip()
+    return ""
+
+
 def truncate_text(draw, text, font, max_width):
     if not text:
         return ""
@@ -89,65 +115,60 @@ def truncate_text(draw, text, font, max_width):
 
 
 def get_state():
-    SONG_URL = "http://localhost/command/?cmd=currentsong"
+    SONG_URL   = "http://localhost/command/?cmd=currentsong"
     STATUS_URL = "http://localhost/command/?cmd=status"
     RP_API_URL = "https://api.radioparadise.com/api/now_playing?chan=0"
 
-    song_r = session.get(SONG_URL, timeout=HTTP_TIMEOUT)
-    song_r.raise_for_status()
-    song_data = song_r.json()
+    song_data   = api_get(SONG_URL)
+    status_data = api_get(STATUS_URL)
 
-    status_r = session.get(STATUS_URL, timeout=HTTP_TIMEOUT)
-    status_r.raise_for_status()
-    status_data = status_r.json()
+    # Extract playback state
+    status = find_prefixed(status_data, "state: ") or "stop"
 
-    status = "stop"
-    for v in status_data.values():
-        if v.startswith("state: "):
-            status = v.replace("state: ", "").strip()
-            break
+    # Extract station name
+    station = find_prefixed(song_data, "Name: ")
 
-    station = ""
-    for v in song_data.values():
-        if v.startswith("Name: "):
-            station = v.replace("Name: ", "").strip()
-            break
-
+    # Radio Paradise live metadata
     if "radio paradise" in station.lower():
         try:
-            rp = session.get(RP_API_URL, timeout=HTTP_TIMEOUT)
-            rp.raise_for_status()
-            rp_data = rp.json()
-            return {
-                "status": status,
-                "artist": rp_data.get("artist", ""),
-                "title": rp_data.get("title", ""),
-                "album": rp_data.get("album", ""),
-                "albumart": rp_data.get("cover", ""),
-            }
+            rp_data = api_get(RP_API_URL)
+            if rp_data:
+                return {
+                    "status": status,
+                    "artist": rp_data.get("artist", ""),
+                    "title":  rp_data.get("title", ""),
+                    "album":  rp_data.get("album", ""),
+                    "albumart": rp_data.get("cover", ""),
+                }
         except:
             pass
 
-    raw_title = ""
-    for v in song_data.values():
-        if v.startswith("Title: "):
-            raw_title = v.replace("Title: ", "").strip()
-            break
-
+    # Generic title parsing: "Artist - Track" or just "Track"
+    raw_title = find_prefixed(song_data, "Title: ")
     if " - " in raw_title:
         artist, title = raw_title.split(" - ", 1)
     else:
         artist = ""
-        title = raw_title
+        title  = raw_title
 
-    logo_url = "http://localhost/imagesw/radio-logos/" + urllib.parse.quote(station + ".jpg")
+    # Album (local files)
+    album = find_prefixed(song_data, "Album: ")
+    if not album:
+        album = station  # fall back to station name for radio
+
+    # Album art: local files use coverart.php; radio uses station logo
+    if station:
+        logo_url = "http://localhost/imagesw/radio-logos/" + urllib.parse.quote(station + ".jpg")
+        albumart = logo_url
+    else:
+        albumart = DEFAULT_COVER_URL
 
     return {
-        "status": status,
-        "artist": artist.strip(),
-        "title": title.strip(),
-        "album": station,
-        "albumart": logo_url,
+        "status":   status,
+        "artist":   artist.strip(),
+        "title":    title.strip(),
+        "album":    album.strip(),
+        "albumart": albumart,
     }
 
 
@@ -186,9 +207,7 @@ def render_cover_screen(state, cover_img):
         tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
         draw_cover.text(
             ((WIDTH - tw) // 2, (ART_H - th) // 2),
-            msg,
-            font=FONT_INFO,
-            fill=(180, 180, 180),
+            msg, font=FONT_INFO, fill=(180, 180, 180),
         )
     else:
         cover = ImageOps.fit(
@@ -202,35 +221,35 @@ def render_cover_screen(state, cover_img):
     draw = ImageDraw.Draw(canvas)
 
     artist = state.get("artist", "") or ""
-    album = "ALBUM: " + ((state.get("album", "") or "").strip())
-    track = state.get("title", "") or ""
+    album  = "ALBUM: " + (state.get("album", "") or "").strip()
+    track  = state.get("title", "") or ""
 
     artist = truncate_text(draw, artist, FONT_ARTIST, WIDTH - 12)
-    album = truncate_text(draw, album, FONT_ALBUM, WIDTH - 12)
-    track = truncate_text(draw, track, FONT_TRACK, WIDTH - 12)
+    album  = truncate_text(draw, album,  FONT_ALBUM,  WIDTH - 12)
+    track  = truncate_text(draw, track,  FONT_TRACK,  WIDTH - 12)
 
     draw.text((6, 244), artist, font=FONT_ARTIST, fill="white")
-    draw.text((6, 270), album, font=FONT_ALBUM, fill=(210, 210, 210))
-    draw.text((6, 294), track, font=FONT_TRACK, fill="white")
+    draw.text((6, 270), album,  font=FONT_ALBUM,  fill=(210, 210, 210))
+    draw.text((6, 294), track,  font=FONT_TRACK,  fill="white")
 
     return canvas
 
 
 def render_idle_screen():
     canvas = Image.new("RGB", (WIDTH, HEIGHT), "black")
-    draw = ImageDraw.Draw(canvas)
+    draw   = ImageDraw.Draw(canvas)
 
     hostname = get_hostname()
     ips = get_ip_addresses()
 
     lines = [
-        ("PIXIS LCD", FONT_ARTIST, "white"),
-        ("Waiting for playback", FONT_INFO, (180, 180, 180)),
-        ("", None, None),
-        ("Hostname: " + hostname, FONT_INFO, (180, 180, 180)),
+        ("PIXIS LCD",            FONT_ARTIST, "white"),
+        ("Waiting for playback", FONT_INFO,   (180, 180, 180)),
+        ("",                     None,        None),
+        ("Hostname: " + hostname, FONT_INFO,  (180, 180, 180)),
     ]
     for ip in ips:
-        lines.append(("IP Address: " + ip, FONT_INFO, (140, 210, 140)))
+        lines.append(("IP: " + ip, FONT_INFO, (140, 210, 140)))
 
     total_height = 0
     line_heights = []
@@ -245,7 +264,6 @@ def render_idle_screen():
             total_height += h + 6
 
     y = (HEIGHT - total_height) // 2
-
     for i, (text, font, color) in enumerate(lines):
         if font is None:
             y += line_heights[i]
@@ -267,24 +285,24 @@ def main():
 
     while True:
         try:
-            state = get_state()
+            state  = get_state()
             status = state.get("status", "") or ""
 
             if status in ("play", "pause"):
                 cover_img = fetch_cover_image(state)
-                image = render_cover_screen(state, cover_img)
+                image     = render_cover_screen(state, cover_img)
                 signature = json.dumps(
                     {
-                        "status": status,
-                        "artist": state.get("artist", ""),
-                        "album": state.get("album", ""),
-                        "title": state.get("title", ""),
+                        "status":   status,
+                        "artist":   state.get("artist", ""),
+                        "album":    state.get("album", ""),
+                        "title":    state.get("title", ""),
                         "albumart": state.get("albumart", ""),
                     },
                     sort_keys=True,
                 )
             else:
-                image = render_idle_screen()
+                image     = render_idle_screen()
                 signature = "idle"
 
             if signature != last_signature:
