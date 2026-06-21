@@ -9,6 +9,7 @@ Waveshare 2.8" SPI LCD display with album art, metadata, and idle screen IP disp
 - **Idle Screen**: Shows hostname and IP address(es) when playback is stopped
 - **Radio Paradise Integration**: Uses RP API for rich metadata and cover art
 - **Always-On Backlight**: No PWM flicker — uses DigitalOutputDevice
+- **Auto-Resume on Boot**: Playback resumes automatically after reboot via `mpd-autoplay.service`
 
 ## Requirements
 
@@ -30,20 +31,15 @@ SSH into your moOde device, then:
 
 The bootstrap will confirm your intent, then hand off to install.sh which:
 
-1. Installs all dependencies (wget, unzip, Python packages)
+1. Installs all dependencies (wget, unzip, Python packages, mpc)
 2. Enables SPI in /boot/firmware/config.txt if not already active
 3. Downloads and installs the Waveshare 2.8 driver from the official Waveshare ZIP
 4. Copies moode_lcd.py into the Waveshare Python directory
-5. Creates and enables the moode-lcd systemd service
+5. Creates and enables the `moode-lcd` systemd service
+6. Creates and enables the `mpd-autoplay` systemd service for auto-resume on boot
 
-If SPI was not previously enabled, reboot when prompted:
-
-    sudo reboot
-
-Then verify:
-
-    ls -la /dev/spidev*
-    sudo systemctl status moode-lcd.service
+The installer reboots automatically. After reboot the LCD will display
+album art and metadata, and playback will resume without any manual input.
 
 ## Troubleshooting
 
@@ -60,6 +56,11 @@ User not in gpio/spi groups:
 
 SPI device not found — reboot and check again.
 
+Playback not resuming after reboot:
+
+    sudo systemctl status mpd-autoplay.service
+    sudo journalctl -u mpd-autoplay.service
+
 ## Service Management
 
     sudo systemctl start moode-lcd.service
@@ -73,5 +74,6 @@ SPI device not found — reboot and check again.
 |---|---|
 | LCD Python script | /home/moode/waveshare-2.8/Python/moode_lcd.py |
 | Waveshare driver | /home/moode/waveshare-2.8/Python/LCD_2inch8.py |
-| Systemd service | /etc/systemd/system/moode-lcd.service |
+| LCD systemd service | /etc/systemd/system/moode-lcd.service |
+| Auto-resume service | /etc/systemd/system/mpd-autoplay.service |
 | SPI config | /boot/firmware/config.txt |
