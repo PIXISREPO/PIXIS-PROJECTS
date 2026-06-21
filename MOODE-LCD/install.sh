@@ -21,14 +21,12 @@ echo "[INFO] Dependencies installed"
 # Step 2: Enable SPI if not already enabled
 echo "[INFO] Checking SPI configuration..."
 
-SPI_ADDED=false
 if ! grep -q "dtparam=spi=on" "$CONFIG_FILE" 2>/dev/null; then
     echo "[INFO] SPI not enabled. Enabling SPI..."
     echo "" >> "$CONFIG_FILE"
     echo "# PIXIS MOODE-LCD: SPI display" >> "$CONFIG_FILE"
     echo "dtparam=spi=on" >> "$CONFIG_FILE"
-    SPI_ADDED=true
-    echo "[INFO] SPI enabled. Reboot required after installation."
+    echo "[INFO] SPI enabled."
 else
     echo "[INFO] SPI already enabled"
 fi
@@ -83,32 +81,22 @@ echo "[INFO] Enabling moode-lcd.service..."
 systemctl daemon-reload
 systemctl enable moode-lcd.service
 
-if [[ "$SPI_ADDED" == "true" ]]; then
-    echo ""
-    echo "============================================================"
-    echo " REBOOT REQUIRED"
-    echo " SPI was just enabled. You must reboot before the LCD"
-    echo " service will start correctly."
-    echo ""
-    echo " After reboot, verify SPI is active:"
-    echo "   ls -la /dev/spidev*"
-    echo ""
-    echo " Then start the service:"
-    echo "   sudo systemctl start moode-lcd.service"
-    echo "   sudo systemctl status moode-lcd.service"
-    echo "============================================================"
-    echo ""
-else
-    echo "[INFO] Starting moode-lcd.service..."
-    systemctl start moode-lcd.service
-    sleep 2
-    systemctl status moode-lcd.service
-    echo ""
-    echo "MOODE-LCD installed and running!"
-fi
+echo ""
+echo "============================================================"
+echo " MOODE-LCD INSTALLED SUCCESSFULLY"
+echo "============================================================"
+echo ""
+echo " A reboot is required to ensure SPI and group"
+echo " permissions are fully active."
+echo ""
+echo " Rebooting in 10 seconds... (Ctrl+C to cancel)"
+echo ""
+
+for i in $(seq 10 -1 1); do
+    printf "  %2d...\r" "$i"
+    sleep 1
+done
 
 echo ""
-echo "Useful commands:"
-echo "  sudo systemctl status moode-lcd.service"
-echo "  sudo journalctl -u moode-lcd.service -f"
-echo ""
+echo "[INFO] Rebooting now."
+reboot
