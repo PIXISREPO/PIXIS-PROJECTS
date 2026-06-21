@@ -21,10 +21,9 @@ echo "PIXIS MOODE-LCD Bootstrap"
 echo
 echo "This will download and install the PIXIS Moode LCD display service."
 echo "It will:"
-echo "  - Download install.sh and moode_lcd.py from GitHub"
+echo "  - Download install.sh, LCD_2inch8.py and moode_lcd.py from GitHub"
 echo "  - Enable SPI if not already enabled"
-echo "  - Install Waveshare 2.8 Python driver if not present"
-echo "  - Copy moode_lcd.py to /home/moode/waveshare-2.8/Python/"
+echo "  - Copy driver files to /home/moode/waveshare-2.8/Python/"
 echo "  - Create and enable moode-lcd.service"
 echo
 
@@ -42,6 +41,9 @@ info "Downloading install.sh..."
 wget -q "$GITHUB_RAW/install.sh" -O install.sh || fail "Failed to download install.sh"
 chmod +x install.sh
 
+info "Downloading LCD_2inch8.py..."
+wget -q "$GITHUB_RAW/LCD_2inch8.py" -O LCD_2inch8.py || fail "Failed to download LCD_2inch8.py"
+
 info "Downloading moode_lcd.py..."
 wget -q "$GITHUB_RAW/moode_lcd.py" -O moode_lcd.py || fail "Failed to download moode_lcd.py"
 
@@ -50,4 +52,3 @@ info "Handing off to install.sh..."
 echo
 
 exec bash install.sh
-
