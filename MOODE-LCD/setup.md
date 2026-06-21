@@ -48,25 +48,42 @@ From your Mac:
     sudo bash install.sh
 
 The installer will:
-- Install Python dependencies
+- Install Python dependencies (including `mpc`)
 - Enable SPI in /boot/firmware/config.txt if not already enabled
 - Download and install the Waveshare 2.8 Python driver
 - Copy moode_lcd.py to the driver directory
-- Create and enable the moode-lcd.service systemd service
+- Create and enable the `moode-lcd.service` systemd service
+- Create and enable the `mpd-autoplay.service` for auto-resume on boot
 
-### 4. Reboot if prompted
+### 4. Reboot when prompted
 
-    sudo reboot
+The installer reboots automatically after 10 seconds. After reboot:
 
-After reboot:
+- The LCD will display album art and metadata immediately
+- Playback will resume automatically — no manual Play tap required
 
-    sudo systemctl start moode-lcd.service
+---
+
+## Auto-Resume on Boot
+
+By default, MPD boots into a paused state even though it saves its playlist
+and position on shutdown. The installer creates a small systemd service
+(`mpd-autoplay.service`) that fires `mpc play` 5 seconds after MPD starts,
+so playback resumes automatically every time the Pi reboots.
+
+This works for both local files and live radio streams. MPD saves the stream
+URL across reboots and reconnects automatically.
+
+To verify the service is running:
+
+    sudo systemctl status mpd-autoplay.service
 
 ---
 
 ## Verifying the Installation
 
     sudo systemctl status moode-lcd.service
+    sudo systemctl status mpd-autoplay.service
     sudo journalctl -u moode-lcd.service -f
     ls -la /dev/spidev*
 
@@ -97,12 +114,16 @@ Re-run install.sh or manually copy Waveshare Python files to
 /home/moode/waveshare-2.8/Python/
 
 Service runs but wrong data shown:
-- Check Moode API: curl http://localhost/api/get-current-audio
+- Check Moode API: curl http://localhost/command/?cmd=currentsong
 - Check MOODE_API_URL at top of moode_lcd.py
 
 Permission denied on /dev/spidev0.0:
     sudo usermod -aG spi moode
     sudo reboot
+
+Playback not resuming after reboot:
+    sudo systemctl status mpd-autoplay.service
+    sudo journalctl -u mpd-autoplay.service
 
 ---
 
@@ -111,6 +132,8 @@ Permission denied on /dev/spidev0.0:
     sudo systemctl stop moode-lcd.service
     sudo systemctl disable moode-lcd.service
     sudo rm /etc/systemd/system/moode-lcd.service
+    sudo systemctl stop mpd-autoplay.service
+    sudo systemctl disable mpd-autoplay.service
+    sudo rm /etc/systemd/system/mpd-autoplay.service
     sudo systemctl daemon-reload
     rm -rf /home/moode/waveshare-2.8
-
