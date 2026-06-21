@@ -6,12 +6,13 @@ echo ""
 
 WAVESHARE_DIR="/home/moode/waveshare-2.8/Python"
 SERVICE_FILE="/etc/systemd/system/moode-lcd.service"
+AUTOPLAY_SERVICE_FILE="/etc/systemd/system/mpd-autoplay.service"
 CONFIG_FILE="/boot/firmware/config.txt"
 
 # Step 1: Install dependencies
 echo "[INFO] Installing dependencies..."
 apt-get update -qq
-apt-get install -y wget unzip python3-pip python3-pil python3-requests python3-gpiozero
+apt-get install -y wget unzip python3-pip python3-pil python3-requests python3-gpiozero mpc
 
 pip3 install --break-system-packages spidev 2>/dev/null || pip3 install spidev 2>/dev/null || true
 pip3 install --break-system-packages RPi.GPIO 2>/dev/null || pip3 install RPi.GPIO 2>/dev/null || true
@@ -76,10 +77,36 @@ echo "[INFO] Adding moode user to gpio and spi groups..."
 usermod -aG gpio,spi moode 2>/dev/null || true
 echo "[INFO] moode user permissions updated"
 
-# Step 6: Reload systemd and enable service
+# Step 6: Reload systemd and enable LCD service
 echo "[INFO] Enabling moode-lcd.service..."
 systemctl daemon-reload
 systemctl enable moode-lcd.service
+
+# Step 7: Create and enable mpd-autoplay service
+# MPD boots into paused state by default. This service sends 'mpc play'
+# after MPD starts so playback resumes automatically after every reboot.
+echo "[INFO] Creating mpd-autoplay service for auto-resume on boot..."
+
+cat > "${AUTOPLAY_SERVICE_FILE}" << 'AUTOEOF'
+[Unit]
+Description=MPD Auto Play on Boot
+After=mpd.service
+Requires=mpd.service
+
+[Service]
+Type=oneshot
+ExecStartPre=/bin/sleep 5
+ExecStart=/usr/bin/mpc play
+User=mpd
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+AUTOEOF
+
+systemctl daemon-reload
+systemctl enable mpd-autoplay.service
+echo "[INFO] mpd-autoplay.service enabled — playback will resume automatically after reboot"
 
 echo ""
 echo "============================================================"
@@ -88,6 +115,10 @@ echo "============================================================"
 echo ""
 echo " A reboot is required to ensure SPI and group"
 echo " permissions are fully active."
+echo ""
+echo " After reboot:"
+echo "   - LCD will display album art and metadata"
+echo "   - Playback will resume automatically (mpd-autoplay)"
 echo ""
 echo " Rebooting in 10 seconds... (Ctrl+C to cancel)"
 echo ""
