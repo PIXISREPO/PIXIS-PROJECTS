@@ -32,6 +32,17 @@ else
     echo "[INFO] SPI already enabled"
 fi
 
+# Step 2a: Comment out vc4-kms-v3d to enable headphone jack audio on 3A+
+echo "[INFO] Checking vc4-kms-v3d configuration..."
+
+if grep -q "^vc4-kms-v3d" "$CONFIG_FILE" 2>/dev/null; then
+    echo "[INFO] vc4-kms-v3d found. Commenting it out for headphone jack audio..."
+    sed -i 's/^vc4-kms-v3d/#vc4-kms-v3d/' "$CONFIG_FILE"
+    echo "[INFO] vc4-kms-v3d commented out."
+else
+    echo "[INFO] vc4-kms-v3d not found or already commented."
+fi
+
 # Step 3: Install driver files
 echo "[INFO] Setting up display driver directory..."
 
