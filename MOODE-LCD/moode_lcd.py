@@ -156,12 +156,9 @@ def get_state():
     if not album:
         album = station  # fall back to station name for radio
 
-    # Album art: local files use coverart.php; radio uses station logo
-    if station:
-        logo_url = "http://localhost/imagesw/radio-logos/" + urllib.parse.quote(station + ".jpg")
-        albumart = logo_url
-    else:
-        albumart = DEFAULT_COVER_URL
+    # Album art: always use coverart.php (same source as browser) for both local files and radio
+    albumart = DEFAULT_COVER_URL
+
 
     return {
         "status":   status,
