@@ -1,5 +1,5 @@
 # PIXIS MOODE-LCD
-Waveshare 2.8" SPI LCD display with album art, metadata, and idle screen IP display for moOde Audio Player.
+Waveshare SKU27579 2.8" SPI LCD display with album art, metadata, and idle screen IP display for moOde Audio Player.
 
 ## Features
 
