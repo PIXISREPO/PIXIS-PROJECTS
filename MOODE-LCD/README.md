@@ -9,7 +9,7 @@ Waveshare 2.8" SPI LCD display with album art, metadata, and idle screen IP disp
 - **Radio Paradise Integration**: Uses RP API for rich metadata and cover art
 - **Always-On Backlight**: No PWM flicker — uses DigitalOutputDevice
 - **Auto-Resume on Boot**: Playback resumes automatically after reboot via `mpd-autoplay.service`
-- **Full Moode Controller available via Web Browser to Moode IP address.
+- **Full Moode Controller available via Web Browser to Moode IP address
 
 ## Requirements
 
