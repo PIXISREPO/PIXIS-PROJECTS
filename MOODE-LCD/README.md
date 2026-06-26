@@ -21,7 +21,7 @@ Waveshar 2.8" SPI LCD display with album art, metadata, and idle screen IP displ
   
 ## Installation
 
-The IP address of your Moode Player is displayed on the LCD at boot time. SSH into your moOde device with ssh moode@IP Address with password moode, then copy and paste these four commands into your SSH terminal:
+The IP address of your Moode Player is displayed on the LCD at boot time. SSH into your moOde device with ssh moode@(IP address) with password moode, then copy and paste these four commands into your SSH terminal:
 
 ```bash
 cd /tmp
