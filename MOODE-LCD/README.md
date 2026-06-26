@@ -13,11 +13,12 @@ Waveshare SKU27579 2.8" SPI LCD display with album art, metadata, and idle scree
 
 ## Requirements
 
-- Raspberry Pi 3A+, 4, or 5
+- Raspberry Pi 3A+, Pi Zero2W, Pi3, Pi4, or Pi5
 - moOde Audio Player (default install with user `moode`)
 - Waveshare 2.8" SPI LCD (ST7789 driver)
 - Internet access on the Pi (for Waveshare driver download)
-
+- Optional Audio HATs of your choice.
+  
 ## Installation
 
 SSH into your moOde device, then copy and paste these four commands into your SSH terminal:
