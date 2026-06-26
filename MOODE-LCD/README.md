@@ -6,7 +6,7 @@ Waveshare SKU27579 2.8" SPI LCD display with album art, metadata, and idle scree
 - **Album Art Display**: 240x240 portrait album art from moOde
 - **Metadata**: Artist, album, and track name displayed below art
 - **Idle Screen**: Shows hostname and IP address(es) when playback is stopped
-- **Radio Paradise Integration**: Uses RP API for rich metadata and cover art
+- **Radio Paradise Integration**: Uses RP API for rich metadata and cover art as an example.
 - **Always-On Backlight**: No PWM flicker — uses DigitalOutputDevice
 - **Auto-Resume on Boot**: Playback resumes automatically after reboot via `mpd-autoplay.service`
 - **Full Moode Controller**: Available via Web Browser to Moode IP address
