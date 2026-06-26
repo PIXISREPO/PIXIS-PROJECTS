@@ -19,7 +19,7 @@ Waveshar 2.8" SPI LCD display with album art, metadata, and idle screen IP displ
 - Internet access on the Pi (for Installer, dependencies and Waveshare driver download)
 - Optional Audio HATs of your choice.
   
-## Installation
+## One Step Installation
 
 The IP address of your Moode Player is displayed on the LCD at boot time. SSH into your moOde device with ssh moode@(IP address) with password moode, then copy and paste these four commands into your SSH terminal:
 
@@ -32,7 +32,7 @@ sudo bash bootstrap.sh
 
 Click the copy icon in the top-right of the code block, paste into your SSH terminal, and hit Return.
 
-### Two-Step Install (Inspect Before Installing)
+### Two-Step Installation (Inspect Before Installing)
 
 If you want to inspect the files before installing:
 
