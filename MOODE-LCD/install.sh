@@ -8,6 +8,7 @@ WAVESHARE_DIR="/home/moode/waveshare-2.8/Python"
 SERVICE_FILE="/etc/systemd/system/moode-lcd.service"
 AUTOPLAY_SERVICE_FILE="/etc/systemd/system/mpd-autoplay.service"
 CONFIG_FILE="/boot/firmware/config.txt"
+DEFAULT_STREAM_URL="https://stream.radioparadise.com/mellow-128"
 
 # Step 1: Install dependencies
 echo "[INFO] Installing dependencies..."
@@ -93,6 +94,12 @@ echo "[INFO] Enabling moode-lcd.service..."
 systemctl daemon-reload
 systemctl enable moode-lcd.service
 
+# Step 6a: Seed first boot with Radio Paradise Mellow Mix
+echo "[INFO] Setting initial default stream to Radio Paradise Mellow Mix..."
+sudo -u moode mpc clear || true
+sudo -u moode mpc add "${DEFAULT_STREAM_URL}"
+echo "[INFO] Radio Paradise Mellow Mix queued for first boot"
+
 # Step 7: Create and enable mpd-autoplay service
 # MPD boots into paused state by default. This service sends 'mpc play'
 # after MPD starts so playback resumes automatically after every reboot.
@@ -129,7 +136,8 @@ echo " permissions are fully active."
 echo ""
 echo " After reboot:"
 echo "   - LCD will display album art and metadata"
-echo "   - Playback will resume automatically (mpd-autoplay)"
+echo "   - First boot will start Radio Paradise Mellow Mix"
+echo "   - Thereafter playback will resume from the last MPD state"
 echo ""
 echo " Rebooting in 10 seconds... (Ctrl+C to cancel)"
 echo ""

@@ -114,57 +114,68 @@ def truncate_text(draw, text, font, max_width):
     return best
 
 
-def get_state():
-    SONG_URL   = "http://localhost/command/?cmd=currentsong"
-    STATUS_URL = "http://localhost/command/?cmd=status"
-    RP_API_URL = "https://api.radioparadise.com/api/now_playing?chan=0"
+def get_rp_channel(song_data):
+    station = (find_prefixed(song_data, "Name: ") or "").lower()
+    file_or_url = (find_prefixed(song_data, "file: ") or "").lower()
+    title = (find_prefixed(song_data, "Title: ") or "").lower()
+    haystack = " ".join([station, file_or_url, title])
 
-    song_data   = api_get(SONG_URL)
+    if "mellow" in haystack:
+        return 1
+    if "rock" in haystack:
+        return 2
+    if "global" in haystack or "world" in haystack:
+        return 3
+    return 0
+
+
+def get_state():
+    SONG_URL = "http://localhost/command/?cmd=currentsong"
+    STATUS_URL = "http://localhost/command/?cmd=status"
+
+    song_data = api_get(SONG_URL)
     status_data = api_get(STATUS_URL)
 
-    # Extract playback state
     status = find_prefixed(status_data, "state: ") or "stop"
-
-    # Extract station name
     station = find_prefixed(song_data, "Name: ")
+    file_or_url = find_prefixed(song_data, "file: ")
 
-    # Radio Paradise live metadata
-    if "radio paradise" in station.lower():
+    rp_probe = " ".join([station.lower(), file_or_url.lower()])
+
+    if "radio paradise" in rp_probe or "radioparadise" in rp_probe:
         try:
-            rp_data = api_get(RP_API_URL)
+            rp_chan = get_rp_channel(song_data)
+            rp_api_url = f"https://api.radioparadise.com/api/now_playing?chan={rp_chan}"
+            rp_data = api_get(rp_api_url)
             if rp_data:
                 return {
                     "status": status,
                     "artist": rp_data.get("artist", ""),
-                    "title":  rp_data.get("title", ""),
-                    "album":  rp_data.get("album", ""),
+                    "title": rp_data.get("title", ""),
+                    "album": rp_data.get("album", ""),
                     "albumart": rp_data.get("cover", ""),
                 }
         except:
             pass
 
-    # Generic title parsing: "Artist - Track" or just "Track"
     raw_title = find_prefixed(song_data, "Title: ")
     if " - " in raw_title:
         artist, title = raw_title.split(" - ", 1)
     else:
         artist = ""
-        title  = raw_title
+        title = raw_title
 
-    # Album (local files)
     album = find_prefixed(song_data, "Album: ")
     if not album:
-        album = station  # fall back to station name for radio
+        album = station
 
-    # Album art: always use coverart.php (same source as browser) for both local files and radio
     albumart = DEFAULT_COVER_URL
 
-
     return {
-        "status":   status,
-        "artist":   artist.strip(),
-        "title":    title.strip(),
-        "album":    album.strip(),
+        "status": status,
+        "artist": artist.strip(),
+        "title": title.strip(),
+        "album": album.strip(),
         "albumart": albumart,
     }
 
@@ -218,93 +229,72 @@ def render_cover_screen(state, cover_img):
     draw = ImageDraw.Draw(canvas)
 
     artist = state.get("artist", "") or ""
-    album  = "ALBUM: " + (state.get("album", "") or "").strip()
-    track  = state.get("title", "") or ""
+    album = "ALBUM: " + (state.get("album", "") or "").strip()
+    track = state.get("title", "") or ""
 
     artist = truncate_text(draw, artist, FONT_ARTIST, WIDTH - 12)
-    album  = truncate_text(draw, album,  FONT_ALBUM,  WIDTH - 12)
-    track  = truncate_text(draw, track,  FONT_TRACK,  WIDTH - 12)
+    album = truncate_text(draw, album, FONT_ALBUM, WIDTH - 12)
+    track = truncate_text(draw, track, FONT_TRACK, WIDTH - 12)
 
     draw.text((6, 244), artist, font=FONT_ARTIST, fill="white")
-    draw.text((6, 270), album,  font=FONT_ALBUM,  fill=(210, 210, 210))
-    draw.text((6, 294), track,  font=FONT_TRACK,  fill="white")
+    draw.text((6, 270), album, font=FONT_ALBUM, fill=(210, 210, 210))
+    draw.text((6, 294), track, font=FONT_TRACK, fill="white")
 
     return canvas
 
 
 def render_idle_screen():
     canvas = Image.new("RGB", (WIDTH, HEIGHT), "black")
-    draw   = ImageDraw.Draw(canvas)
+    draw = ImageDraw.Draw(canvas)
 
     hostname = get_hostname()
     ips = get_ip_addresses()
 
-    lines = [
-        ("PIXIS LCD",            FONT_ARTIST, "white"),
-        ("Waiting for playback", FONT_INFO,   (180, 180, 180)),
-        ("",                     None,        None),
-        ("Hostname: " + hostname, FONT_INFO,  (180, 180, 180)),
-    ]
-    for ip in ips:
-        lines.append(("IP: " + ip, FONT_INFO, (140, 210, 140)))
+    title = "moOde-LCD"
+    bbox = FONT_ARTIST.getbbox(title)
+    tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
+    draw.text(((WIDTH - tw) // 2, 80), title, font=FONT_ARTIST, fill="white")
 
-    total_height = 0
-    line_heights = []
-    for text, font, color in lines:
-        if font is None:
-            line_heights.append(8)
-            total_height += 8
-        else:
-            bbox = font.getbbox(text)
-            h = bbox[3] - bbox[1]
-            line_heights.append(h + 6)
-            total_height += h + 6
+    host_line = f"Host: {hostname}"
+    bbox = FONT_INFO.getbbox(host_line)
+    tw, _ = bbox[2] - bbox[0], bbox[3] - bbox[1]
+    draw.text(((WIDTH - tw) // 2, 130), host_line, font=FONT_INFO, fill=(220, 220, 220))
 
-    y = (HEIGHT - total_height) // 2
-    for i, (text, font, color) in enumerate(lines):
-        if font is None:
-            y += line_heights[i]
-            continue
-        bbox = font.getbbox(text)
-        w = bbox[2] - bbox[0]
-        draw.text(((WIDTH - w) // 2, y), text, font=font, fill=color)
-        y += line_heights[i]
+    y = 160
+    for ip in ips[:3]:
+        ip_line = f"IP: {ip}"
+        bbox = FONT_INFO.getbbox(ip_line)
+        tw, _ = bbox[2] - bbox[0], bbox[3] - bbox[1]
+        draw.text(((WIDTH - tw) // 2, y), ip_line, font=FONT_INFO, fill=(180, 180, 180))
+        y += 24
 
     return canvas
 
 
 def main():
     disp = LCD_2inch8()
-    disp.ST7789_Init()
+    disp.Init()
     disp.clear()
 
     last_signature = None
 
     while True:
         try:
-            state  = get_state()
-            status = state.get("status", "") or ""
+            state = get_state()
+            status = state.get("status", "stop")
 
-            if status in ("play", "pause"):
-                cover_img = fetch_cover_image(state)
-                image     = render_cover_screen(state, cover_img)
-                signature = json.dumps(
-                    {
-                        "status":   status,
-                        "artist":   state.get("artist", ""),
-                        "album":    state.get("album", ""),
-                        "title":    state.get("title", ""),
-                        "albumart": state.get("albumart", ""),
-                    },
-                    sort_keys=True,
-                )
+            if status == "play":
+                signature = json.dumps(state, sort_keys=True)
+                if signature != last_signature:
+                    cover_img = fetch_cover_image(state)
+                    screen = render_cover_screen(state, cover_img)
+                    disp.ShowImage(screen)
+                    last_signature = signature
             else:
-                image     = render_idle_screen()
-                signature = "idle"
-
-            if signature != last_signature:
-                disp.ShowImage(image)
-                last_signature = signature
+                if last_signature != "idle":
+                    screen = render_idle_screen()
+                    disp.ShowImage(screen)
+                    last_signature = "idle"
 
         except Exception:
             traceback.print_exc()
@@ -314,3 +304,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
