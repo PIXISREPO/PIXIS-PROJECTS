@@ -9,6 +9,7 @@ SERVICE_FILE="/etc/systemd/system/moode-lcd.service"
 AUTOPLAY_SERVICE_FILE="/etc/systemd/system/mpd-autoplay.service"
 CONFIG_FILE="/boot/firmware/config.txt"
 DEFAULT_STREAM_URL="https://stream.radioparadise.com/mellow-128"
+REPO_RAW_BASE="https://raw.githubusercontent.com/PIXISREPO/PIXIS-PROJECTS/main/MOODE-LCD"
 
 # Step 1: Install dependencies
 echo "[INFO] Installing dependencies..."
@@ -50,6 +51,29 @@ echo "[INFO] Setting up display driver directory..."
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 mkdir -p "${WAVESHARE_DIR}"
+
+ensure_local_file() {
+    local filename="$1"
+    local filepath="${SCRIPT_DIR}/${filename}"
+
+    if [ -f "${filepath}" ]; then
+        echo "[INFO] Found ${filename} in ${SCRIPT_DIR}"
+        return 0
+    fi
+
+    echo "[INFO] ${filename} not found locally. Downloading from GitHub..."
+    wget -q -O "${filepath}" "${REPO_RAW_BASE}/${filename}"
+
+    if [ ! -s "${filepath}" ]; then
+        echo "[ERROR] Failed to download ${filename}"
+        exit 1
+    fi
+
+    echo "[INFO] Downloaded ${filename}"
+}
+
+ensure_local_file "LCD_2inch8.py"
+ensure_local_file "moode_lcd.py"
 
 echo "[INFO] Copying LCD_2inch8.py driver..."
 cp "${SCRIPT_DIR}/LCD_2inch8.py" "${WAVESHARE_DIR}/LCD_2inch8.py"
@@ -150,3 +174,4 @@ done
 echo ""
 echo "[INFO] Rebooting now."
 reboot
+
