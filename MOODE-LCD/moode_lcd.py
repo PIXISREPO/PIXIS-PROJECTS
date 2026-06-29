@@ -181,11 +181,14 @@ def get_state():
 
 
 def resolve_albumart_url(state):
-    albumart = state.get("albumart", "") or ""
-    if not albumart:
-        return DEFAULT_COVER_URL
+    coverurl = (state.get("coverurl", "") or "").strip()
+    if coverurl.startswith("http://") or coverurl.startswith("https://"):
+        return coverurl
+
+    albumart = (state.get("albumart", "") or "").strip()
     if albumart.startswith("http://") or albumart.startswith("https://"):
         return albumart
+
     return DEFAULT_COVER_URL
 
 
@@ -273,7 +276,7 @@ def render_idle_screen():
 
 def main():
     disp = LCD_2inch8()
-    disp.Init()
+    disp.ST7789_Init()
     disp.clear()
 
     last_signature = None
@@ -281,7 +284,7 @@ def main():
     while True:
         try:
             state = get_state()
-            status = state.get("status", "stop")
+            status = str(state.get("state", state.get("status", "stop")) or "stop").lower()
 
             if status == "play":
                 signature = json.dumps(state, sort_keys=True)
