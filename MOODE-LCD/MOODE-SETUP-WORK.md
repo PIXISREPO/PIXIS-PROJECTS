@@ -9,6 +9,8 @@ Created MOODE-LCD project with:
 - install.sh - Complete installer (SPI + waveshare + service)
 - README.md - Project overview
 - setup.md - Detailed setup guide
+- bootstrap.sh - One-step installer bootstrap
+- MOODE-SETUP-WORK.md - This work log
 
 ## Installation Process That Works
 
@@ -50,6 +52,31 @@ On a fresh moOde setup, these steps work:
    systemctl daemon-reload
    systemctl enable moode-lcd.service
    systemctl start moode-lcd.service
+
+## Installer and Bootstrap Notes
+
+The current repo includes a documented one-step install path:
+
+```bash
+cd /tmp
+wget https://raw.githubusercontent.com/PIXISREPO/PIXIS-PROJECTS/main/MOODE-LCD/bootstrap.sh
+chmod +x bootstrap.sh
+sudo bash bootstrap.sh
+```
+
+The bootstrap downloads `install.sh`, `LCD_2inch8.py`, and `moode_lcd.py` from GitHub into `/tmp/moode-lcd-install`, confirms with the user, then hands off to `install.sh`.
+
+The installer does the following:
+- Installs dependencies: `wget`, `unzip`, `python3-pip`, `python3-pil`, `python3-requests`, `python3-gpiozero`, and `mpc`
+- Attempts to install `spidev` and `RPi.GPIO`
+- Enables `dtparam=spi=on` if needed
+- Comments out `vc4-kms-v3d` if present for headphone jack compatibility
+- Copies `LCD_2inch8.py` and `moode_lcd.py` into `/home/moode/waveshare-2.8/Python/`
+- Creates and enables `moode-lcd.service`
+- Adds user `moode` to `gpio` and `spi`
+- Seeds first boot with Radio Paradise Mellow Mix
+- Creates and enables `mpd-autoplay.service`
+- Reboots automatically after a short countdown
 
 ## Points to Note for Future Player Work Items
 
@@ -100,16 +127,15 @@ Expected path: /home/<player_user>/waveshare-2.8/Python/
 
 ### 8. Pull Player-Specific API Calls
 
-- moOde uses: http://localhost/command/?cmd=status and cmd=currentsong
+- moOde uses localhost command endpoints and player state fields
 - Volumio uses different API (Docker-based)
 - Each player needs its own script with correct API calls
 - Do NOT share scripts between players
 
 ### 9. Radio Paradise Integration
 
-- moOde: Use RP API at https://api.radioparadise.com/api/now_playing?chan=0
-- Works well for RP internet radio streams
-- Gets rich metadata + cover art
+- Radio Paradise works well as a validation stream because it supplies rich metadata and remote cover art
+- It was used successfully to validate both metadata display and real album art fetching
 
 ### 10. Service Name Should Be Player-Specific
 
@@ -134,8 +160,8 @@ Bad installer:
 
 - Test on fresh player setup (not existing setup with prior config)
 - This catches missing prerequisites in installer
-- Moode3 had prior config (SPI enabled, groups added, waveshare installed)
-- Fresh Moode4 will test real installer
+- A previously configured box can hide missing installer steps
+- Fresh installs are the only real validation of the bootstrap path
 
 ## Common Errors and Fixes
 
@@ -170,12 +196,44 @@ Fix: Install RPi.GPIO or pigpio for better pin factory
 
 Status: http://localhost/command/?cmd=status
 Current Song: http://localhost/command/?cmd=currentsong
-Cover Art: http://localhost/coverart.php
+Local Cover Art Fallback: http://localhost/coverart.php
 
-Response format (JSON):
+Relevant state fields used by the LCD script:
 - state: play/pause/stop
+- status: fallback state field in some code paths
 - Name: station name (for internet radio)
 - Title: artist - title (for internet radio)
+- coverurl: preferred album art source when present
+- albumart: secondary album art source when present
+
+### Album Art Fetch Order
+
+This point is important and was confirmed during the 2026-06-29 debugging session.
+
+The LCD script now fetches album art in this order:
+1. `coverurl` from the moOde/player state
+2. `albumart` from the same state if `coverurl` is missing or invalid
+3. `DEFAULT_COVER_URL` as the final fallback
+
+This means:
+- The LCD does NOT primarily use `http://localhost/coverart.php` anymore
+- The local moOde cover art endpoint is now a fallback path only
+- For Radio Paradise, the correct real album art came from the remote `coverurl` metadata URL
+
+In code, this is handled by:
+
+```python
+def resolve_albumart_url(state):
+    coverurl = (state.get("coverurl", "") or "").strip()
+    if coverurl.startswith("http://") or coverurl.startswith("https://"):
+        return coverurl
+
+    albumart = (state.get("albumart", "") or "").strip()
+    if albumart.startswith("http://") or albumart.startswith("https://"):
+        return albumart
+
+    return DEFAULT_COVER_URL
+```
 
 ### Volumio API
 
@@ -186,20 +244,10 @@ Not compatible with moOde script
 
 - moode_lcd.py - Main display script
 - install.sh - Complete installer
+- bootstrap.sh - Bootstrap installer
 - README.md - Project overview
 - setup.md - Setup guide
 - MOODE-SETUP-WORK.md - This work log
-
-## Next Player Items
-
-When building SPI-LCD-TOUCH or other Player LCD projects:
-
-1. Use this work log as reference for service configuration
-2. Follow the installation process above
-3. Adapt moode_lcd.py for new player (change API calls)
-4. Update install.sh with correct player user name
-5. Test on fresh player setup
-6. Document any new issues in this work log
 
 ## Version History
 
@@ -213,25 +261,93 @@ When building SPI-LCD-TOUCH or other Player LCD projects:
   - Issue: Playback paused after reboot, requires manual Play tap
   - Fix: mpd-autoplay.service (Option 1, recommended)
 
----
+- 2026-06-29: Playback state and album art source fixes completed
+  - Root cause 1: playback loop needed to prefer `state` over `status`
+  - Root cause 2: album art logic needed to prefer `coverurl` over local/default art
+  - Validated: LCD now shows metadata correctly
+  - Validated: LCD now enters playback screen correctly
+  - Validated: LCD now shows the real album art instead of the default moOde image
+  - Repo updated and pushed to GitHub
+  - Commit pushed: `0fc3089` - `Fix playback state and prefer remote cover art`
+
+## 2026-06-29 Session Notes
+
+### Problem Summary
+
+A fresh round of testing found that the LCD service was partially working:
+- The LCD hardware initialised and the script was running
+- Metadata could be shown after fixes
+- Real album art was not shown at first; the display fell back to the default moOde image
+
+### Root Causes Found
+
+#### 1. Playback state detection was using the wrong field
+
+The playback loop was checking `status` rather than trusting `state` first.
+
+On the working Pi, the running script fix was:
+
+```python
+state = str(song_data.get("state", status_data.get("state", "")) or "").lower()
+```
+
+In the repo version, the equivalent fix is:
+
+```python
+status = str(state.get("state", state.get("status", "stop")) or "stop").lower()
+```
+
+This corrected the issue where the LCD stayed on the idle or waiting path even though playback was active.
+
+#### 2. Album art fetch logic was using the wrong source
+
+The earlier running script on the Pi used a local fetch routine that only requested the local moOde cover endpoint. That was enough to show the default image, but not always the real remote cover for Radio Paradise.
+
+The working fix was to prefer the `coverurl` value from track metadata first, and only fall back to moOde's local or default cover art URL if necessary.
+
+### Validation Results
+
+After applying the fixes on the Pi:
+- The LCD showed metadata correctly
+- The LCD switched into the playback screen correctly
+- The LCD displayed the real album art instead of the default moOde image
+
+### Repo Update Completed
+
+The local repo at `PIXIS-PROJECTS/MOODE-LCD` was patched and pushed to GitHub.
+
+Committed changes included:
+- Prefer `coverurl` over `albumart` or default art in `resolve_albumart_url(state)`
+- Prefer `state` over `status` for playback detection in the main loop
+- The pushed commit was `0fc3089` with message: `Fix playback state and prefer remote cover art`
+
+### Fresh Install Notes
+
+A clean install should verify these exact lines in the installed file:
+
+```python
+status = str(state.get("state", state.get("status", "stop")) or "stop").lower()
+```
+
+```python
+coverurl = (state.get("coverurl", "") or "").strip()
+```
 
 ## Auto-Resume Playback After Reboot
 
-By default, MPD saves its state (playlist, position, volume) on shutdown but deliberately boots into a **paused** state. After a reboot the LCD correctly shows album art and metadata, but playback does not resume automatically. Two approaches fix this.
+By default, MPD saves its state (playlist, position, volume) on shutdown but deliberately boots into a paused state. After a reboot the LCD can show album art and metadata, but playback may not resume automatically unless a play command is issued.
 
----
-
-### Option 1 — `mpc play` on Boot via systemd (Recommended)
+### Option 1 - `mpc play` on Boot via systemd (Recommended)
 
 A small oneshot systemd service fires `mpc play` after MPD has fully started. This is the preferred approach because it works for both local files and live radio streams without touching moOde's MPD configuration.
 
-**Create the service file:**
+Create the service file:
 
 ```bash
 sudo nano /etc/systemd/system/mpd-autoplay.service
 ```
 
-**Paste the following:**
+Paste the following:
 
 ```ini
 [Unit]
@@ -250,7 +366,7 @@ RemainAfterExit=yes
 WantedBy=multi-user.target
 ```
 
-**Enable and start the service:**
+Enable and start the service:
 
 ```bash
 sudo systemctl enable mpd-autoplay.service
@@ -259,54 +375,13 @@ sudo systemctl start mpd-autoplay.service
 
 The `sleep 5` delay gives MPD time to fully initialise before the play command fires. This value can be tuned down if boot completes faster on your hardware.
 
-> **Radio streams:** MPD saves the stream URL and playlist position across reboots. `mpc play` will reconnect to the last stream automatically.
+## Next Player Items
 
----
+When building SPI-LCD-TOUCH or other Player LCD projects:
 
-### Option 2 — Disable `restore_paused` in `mpd.conf`
-
-MPD has a built-in `restore_paused` setting that controls boot behaviour. If set to `"yes"`, MPD will always boot paused.
-
-**Check the current setting:**
-
-```bash
-grep -i restore /etc/mpd.conf
-```
-
-**If `restore_paused "yes"` is present**, change it to `"no"`:
-
-```bash
-sudo nano /etc/mpd.conf
-# Change:  restore_paused "yes"
-# To:      restore_paused "no"
-```
-
-**Restart MPD to apply:**
-
-```bash
-sudo systemctl restart mpd
-```
-
-> **Note:** Editing `mpd.conf` directly may conflict with moOde's internal configuration management. Option 1 is safer for moOde installations as it does not modify any moOde-managed files.
-
----
-
-### Comparison
-
-| | Option 1 (systemd service) | Option 2 (mpd.conf) |
-|---|---|---|
-| Works for streams | ✅ Yes | ✅ Yes |
-| Works for local files | ✅ Yes | ✅ Yes |
-| Touches moOde config | ❌ No | ⚠️ Yes |
-| Survives moOde updates | ✅ Yes | ⚠️ May be overwritten |
-| Adjustable delay | ✅ Yes (sleep N) | ❌ No |
-| Recommended | ✅ **Yes** | Only if Option 1 fails |
-
----
-
-### Test Results
-
-- Reboot confirmed: LCD shows correct album art and metadata on return ✅
-- Radio stream (Flux FM Electronic Chillout) reconnects correctly ✅
-- API calls (`currentsong`, `status`) responding correctly over localhost ✅
-- LCD and web UI displaying identical playback state ✅
+1. Use this work log as reference for service configuration
+2. Follow the installation process above
+3. Adapt moode_lcd.py for new player by changing API calls and state handling
+4. Update install.sh with correct player user name
+5. Test on a fresh player setup
+6. Document any new issues in this work log
