@@ -13,12 +13,10 @@ __IMPORTANT!__ The image must be configured with a `login userid/password` and `
 <img width="1170" height="872" alt="image" src="https://github.com/user-attachments/assets/822353cd-8d06-4693-ac0b-bc183c89614c" />
 
 
-
-<div style="margin-bottom:1em"><img src="images/imager2_1.png" width="400px"></div>
-
 2. Choose an Operating System. Scroll down and select `Media Player OS`.
+   
+<img width="1352" height="894" alt="image" src="https://github.com/user-attachments/assets/f874366f-09a2-4a22-8ca6-e986c5334781" />
 
-<div style="margin-bottom:1em"><img src="images/imager2_2.png" width="400px"></div>
 
 3. Select moOde audio player.
 
