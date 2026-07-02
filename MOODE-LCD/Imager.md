@@ -2,6 +2,10 @@
 
 Moode requires using the official Raspberry Pi Imager to configure the release image before writing it to the boot media. Follow these step by step instructions to carry out this process.
 
+The Raspberry Pi Imager software can be downloaded from here
+
+https://www.raspberrypi.com/software/
+
 __IMPORTANT!__ The image must be configured with a `login userid/password` and `SSH enabled` or Moode will not function correctly.
 
 1. Select a Raspberry Pi device.
