@@ -10,6 +10,10 @@ __IMPORTANT!__ The image must be configured with a `login userid/password` and `
 
 1. Select a Raspberry Pi device.
 
+<img width="1170" height="872" alt="image" src="https://github.com/user-attachments/assets/822353cd-8d06-4693-ac0b-bc183c89614c" />
+
+
+
 <div style="margin-bottom:1em"><img src="images/imager2_1.png" width="400px"></div>
 
 2. Choose an Operating System. Scroll down and select `Media Player OS`.
