@@ -11,7 +11,6 @@ CONFIG_FILE="/boot/firmware/config.txt"
 DEFAULT_STREAM_URL="https://stream.radioparadise.com/mellow-128"
 REPO_RAW_BASE="https://raw.githubusercontent.com/PIXISREPO/PIXIS-PROJECTS/main/MOODE-LCD"
 
-# Step 1: Install dependencies
 echo "[INFO] Installing dependencies..."
 apt-get update -qq
 apt-get install -y wget unzip python3-pip python3-pil python3-requests python3-gpiozero mpc
@@ -21,7 +20,6 @@ pip3 install --break-system-packages RPi.GPIO 2>/dev/null || pip3 install RPi.GP
 
 echo "[INFO] Dependencies installed"
 
-# Step 2: Enable SPI if not already enabled
 echo "[INFO] Checking SPI configuration..."
 
 if ! grep -q "dtparam=spi=on" "$CONFIG_FILE" 2>/dev/null; then
@@ -34,15 +32,18 @@ else
     echo "[INFO] SPI already enabled"
 fi
 
-# Step 2a: Comment out vc4-kms-v3d to enable headphone jack audio on 3A+
+# Step 2a: Keep vc4-kms-v3d commented out so the headphone jack remains selectable
+# on Pi 3A+ systems where HDMI is not attached during setup.
 echo "[INFO] Checking vc4-kms-v3d configuration..."
 
-if grep -q "^vc4-kms-v3d" "$CONFIG_FILE" 2>/dev/null; then
-    echo "[INFO] vc4-kms-v3d found. Commenting it out for headphone jack audio..."
-    sed -i 's/^vc4-kms-v3d/#vc4-kms-v3d/' "$CONFIG_FILE"
-    echo "[INFO] vc4-kms-v3d commented out."
+if grep -q "^dtoverlay=vc4-kms-v3d" "$CONFIG_FILE" 2>/dev/null; then
+    echo "[INFO] dtoverlay=vc4-kms-v3d found. Commenting it out for headphone jack audio..."
+    sed -i 's/^dtoverlay=vc4-kms-v3d/#dtoverlay=vc4-kms-v3d/' "$CONFIG_FILE"
+    echo "[INFO] dtoverlay=vc4-kms-v3d commented out."
+elif grep -q "^#dtoverlay=vc4-kms-v3d" "$CONFIG_FILE" 2>/dev/null; then
+    echo "[INFO] dtoverlay=vc4-kms-v3d already commented."
 else
-    echo "[INFO] vc4-kms-v3d not found or already commented."
+    echo "[INFO] dtoverlay=vc4-kms-v3d not found. Leaving config unchanged."
 fi
 
 # Step 3: Install driver files
