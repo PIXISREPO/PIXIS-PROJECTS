@@ -19,7 +19,8 @@ Waveshare SKU27579 2.8" SPI LCD display with album art, metadata, and idle scree
 - https://moodeaudio.org/?utm_source=chatgpt.com
 - Waveshare SKU27579 2.8" SPI LCD (ST7789 driver)
 - Internet access on the Pi (for Installer, dependencies and Waveshare driver download)
-- Optional Audio HATs of your choice.
+- A USB to Audio adapter is needed on a Pi Zero 2W, Pi 4 or Pi 5 as they do not have a Headphone socket. A Pi 3A+ does.
+- Optional Audio HAT of your choice or USB DAC or USB APTx or AAC (Sony) USB wireless adapter for Headphones
   
 ## One Step Installation
 
