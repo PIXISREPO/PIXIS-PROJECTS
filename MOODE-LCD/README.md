@@ -16,7 +16,7 @@ Waveshare SKU27579 2.8" SPI LCD display with album art, metadata, and idle scree
 - Raspberry Pi 3A+, Pi Zero2W, Pi3, Pi4, or Pi5
 - moOde Audio Player (default install with user `moode`). This needs to be installed and running before Installing the Moode-LCD Player.
 - If you need a guide to help you install the Moode Audio App go here
-- https://moodeaudio.org/?utm_source=chatgpt.com
+- https://moodeaudio.org/#download
 - Waveshare SKU27579 2.8" SPI LCD (ST7789 driver)
 - Internet access on the Pi (for Installer, dependencies and Waveshare driver download)
 - A USB to Audio adapter is needed on a Pi Zero 2W, Pi 4 or Pi 5 as they do not have a Headphone socket. A Pi 3A+ does.
