@@ -9,7 +9,7 @@ These can be built on a Pixis CB-1 Carrier Board with a Pi Zero 2W or Pi 3A+ or 
 ## Projects
 
 ### 1. MOODE-LCD & VOLUMIO-LCD
-Displays album art and ARTIST / ALBUM / TRACK metadata on a Waveshare 2.8 inch SPI LCD (SKU27579). Supports both Volumio 3 and moOde Audio. The installers prompt for player selection and then configures the apropraite services and dependencies automatically.
+Displays album art and ARTIST / ALBUM / TRACK metadata on a Waveshare 2.8 inch SPI LCD (SKU27579). Supports both Volumio 3 and moOde Audio. The installers prompt for player selection and then configures the appropriate services and dependencies automatically.
 
 ### 2. PIXIS-TOUCH
 Touch screen zone capture script for the Waveshare display. Capture only at this stage; a downstream UI using the output of the LCD-Touch App is WIP.
