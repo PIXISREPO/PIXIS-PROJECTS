@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-REPO="https:""//raw.githubusercontent.com/PIXISREPO/PIXIS-PROJECTS/main"
+REPO="https://raw.githubusercontent.com/PIXISREPO/PIXIS-PROJECTS/main"
 STAGE="/tmp/pixis/stage/VOLUMIO-LCD"
 
 mkdir -p "$STAGE/systemd"
