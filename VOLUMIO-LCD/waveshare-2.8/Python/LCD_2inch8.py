@@ -21,7 +21,7 @@ class LCD_2inch8():
         
         self.GPIO_RST_PIN = DigitalOutputDevice(RST_PIN,active_high = True,initial_value =True)    # RST 设置为输出 参数：引脚，高电平有效，默认高          # 使用GPIO Zero库中的DigitalOutputDevice类
         self.GPIO_DC_PIN  = DigitalOutputDevice(DC_PIN,active_high = True,initial_value =True)     # DC 设置为输出 参数：引脚，高电平有效，默认高           # 使用GPIO Zero库中的DigitalOutputDevice类
-        self.GPIO_BL_PIN  = PWMOutputDevice(BL_PIN,frequency = BL_Freq)                            # BL 设置为PWM  参数：引脚，PWM 频率                    # 使用GPIO Zero库中的PWMOutputDevice类
+        self.GPIO_BL_PIN  = DigitalOutputDevice(BL_PIN, active_high=True, initial_value=True)                            # BL 设置为PWM  参数：引脚，PWM 频率                    # 使用GPIO Zero库中的PWMOutputDevice类
         self.bl_DutyCycle(80)    
         #Initialize SPI
         self.SPI = spidev.SpiDev(0,0)
@@ -43,11 +43,16 @@ class LCD_2inch8():
             Pin.on()
         else:
             Pin.off()
-    def bl_Frequency(self,freq):                    # 设置 PWM 频率
-        self.GPIO_BL_PIN.frequency = freq
+    def bl_Frequency(self, freq):
+        # Backlight is fixed ON; PWM brightness control disabled.
+        pass
 
-    def bl_DutyCycle(self, duty):                   # 设置 PWM 占空比
-        self.GPIO_BL_PIN.value = duty / 100
+    def bl_DutyCycle(self, duty):
+        # Preserve compatibility: 0 = OFF, any non-zero value = ON.
+        if duty:
+            self.GPIO_BL_PIN.on()
+        else:
+            self.GPIO_BL_PIN.off()
 
     def spi_writebyte(self, data):
         if self.SPI!=None :
