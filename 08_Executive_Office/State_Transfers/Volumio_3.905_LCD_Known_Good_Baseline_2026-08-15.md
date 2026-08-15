@@ -149,3 +149,36 @@ If future Volumio LCD development fails or becomes uncertain, return first to:
 - `volumio_lcd.py` SHA256 `52f4fdded03064136e627cabaf13a3ae765f7ffa6f8954c9750ffa8489433164`
 
 These identify the verified working PIXIS Volumio 3.905 LCD implementation.
+
+## Post-Baseline Backlight Fix — 2026-08-15
+
+A visible LCD backlight flicker was traced to software-timed PWM on GPIO18 / physical pin 12.
+
+The Waveshare driver used:
+
+`PWMOutputDevice(BL_PIN, frequency=1000)`
+
+through gpiozero's `RPiGPIOFactory`, producing a jittery approximately 80% duty-cycle waveform.
+
+The diagnosis was confirmed experimentally: holding GPIO18 continuously HIGH at 3.3 V eliminated the flicker.
+
+PIXIS does not currently require adjustable LCD brightness, so the production fix is to remove PWM and use a fixed digital HIGH backlight while the LCD service is active.
+
+The driver now uses:
+
+`DigitalOutputDevice(BL_PIN, active_high=True, initial_value=True)`
+
+The compatibility methods remain present so existing calls do not fail, but brightness control is binary only: 0 = OFF, non-zero = ON.
+
+Acceptance result:
+
+- `volumio-lcd.service` active and running
+- GPIO18 steady HIGH
+- backlight flicker eliminated
+- LCD operation otherwise unchanged
+
+This fix is recorded separately from the original frozen Volumio 3.905 baseline.
+
+Post-baseline tag:
+
+`VOLUMIO-LCD-V3.905-KNOWN-GOOD-BACKLIGHT-FIX-2026-08-15`
