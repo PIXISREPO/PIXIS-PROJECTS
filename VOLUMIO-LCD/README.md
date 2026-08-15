@@ -1,197 +1,422 @@
-# Volumio LCD Album Art Display
+# PIXIS Volumio LCD Album Art Display
 
-A fully automated installer and runtime for a Waveshare 2.8" SPI LCD, SKU 27579 on Volumio 3. The display shows album art and playback metadata from the currently selected Volumio music source. This build is for Volumio 3 based on Debian Buster (10). A release for Volumio 4 Debian Bookworm (12) is in the pipeline and will be released here soon. Do not attempt to install this Buster version on Volumio 4 - it will fail.  
+A PIXIS installer and runtime for the Waveshare 2.8" SPI LCD (SKU 27579) running with Volumio 3.
 
-You can download the latest Volumio 3 Raspberry Pi image from the Volumio 3.x download links thread on the Volumio community forum - using the link below - then use the VOLUMIO‑LCD installer to overlay the LCD stack on top of the Volumio image.”
+The display provides an appliance-style front panel showing album art and playback metadata from the currently selected Volumio music source.
+
+> **Verified baseline — 15 August 2026**
+>
+> Tested with **Volumio 3.905** and the Waveshare 2.8" SPI LCD.
+>
+> Verified end-to-end:
+>
+> - clean Volumio 3.905 installation
+> - PIXIS LCD installer
+> - SPI configuration
+> - `/dev/spidev0.0` available after reboot
+> - `volumio-lcd.service` enabled and automatically started
+> - Radio Paradise playback
+> - album art displayed
+> - playback metadata displayed
+> - fixed GPIO18 backlight with no visible flicker
+>
+> Current known-good tag:
+>
+> `VOLUMIO-LCD-V3.905-KNOWN-GOOD-BACKLIGHT-FIX-2026-08-15`
+
+The earlier pre-backlight-fix baseline is retained as:
+
+`VOLUMIO-LCD-V3.905-KNOWN-GOOD-2026-08-15`
+
+## Platform
+
+This release is for:
+
+- Volumio **3.905**
+- Debian Buster-based Volumio 3
+- Raspberry Pi
+- Waveshare 2.8" SPI LCD, SKU 27579
+- 240 × 320 display
+- SPI display interface
+
+A separate Volumio 4 implementation will be required for the newer Debian base.
+
+**Do not install this Volumio 3/Buster release on Volumio 4.**
+
+Volumio and moOde are maintained as **separate PIXIS installer paths**. The Volumio installer does not select, configure or install moOde.
+
+---
+
+# Stage 1 — Install Volumio
+
+The verified Volumio image is:
+
+**Volumio 3.905 — 2026-01-28**
+
+Download:
 
 https://updates.volumio.org/pi/volumio/3.905/Volumio-3.905-2026-01-28-pi.zip
 
-Burn this to a micro SD card and use it to boot your Raspberry Pi.
+Write the image to a microSD card and boot the Raspberry Pi.
 
-The Volumio instance will broadcast a Hotspot SSID 'Volumioxxxx'. Connect your device (Phone, Laptop, Desktop) to that Hotspot and open a browser at volumioxxxx.local. Depending on the device you are using you may get a popup window inviting you to proceed with the installation, if not then open the browser on your device and go to the volumioxxxx.local web page. 
+The new Volumio installation will normally broadcast a hotspot with an SSID similar to:
 
-Follow the simple instructions to connect your Pi to your home wifi network, save and reboot the OS. The Pi should now automatically connect to your home network. Revisit volumio web page on your device using the name you gave your Volumio OS and follow the on screen instructions to complete the first time Volumio setup. If you have connected a Monitor to your Pi and your Monitor has speakers then you can select HDMI as Audio Out. If not then for now use Headphone as Audio Out. You can install an Audio HAT later.
+`Volumioxxxx`
 
-A useful short Youtube explainer is here. 
+Connect a phone, laptop or desktop computer to that hotspot and open the Volumio setup interface.
+
+Follow the Volumio first-run instructions to:
+
+1. connect the Pi to your Wi-Fi network;
+2. give the Volumio player a hostname;
+3. reboot;
+4. reconnect to the Volumio web interface;
+5. complete the initial audio configuration.
+
+For initial testing, HDMI or the Raspberry Pi headphone output may be used. An audio HAT can be configured later.
+
+A useful introductory video is:
 
 https://www.youtube.com/watch?v=0KZs--x1uPY
 
-Sign up for a Volumio account - either free or Premium, up to you. Install the Volumio Plugin for Radio Paradise and check you can stream Audio to your Audio Out device. This now completes the First Stage setup.
+A Volumio account may be created if required.
 
-The next step requires a command line instruction to your Pi. If you have connected a Monitor and keyboard to your Pi then you can log in with user volumio and password volumio and then proceed from there. If you do not have a Monitor and Keyboard connected to your Pi you will need to ssh into your instance of Volumio from another device on your home network. Go to volumio.local/dev on your device browser and ENABLE ssh. You can then remote in from a terminal on your device using 
+For the PIXIS acceptance test, the Radio Paradise plugin provides a convenient known streaming source.
+
+Confirm that Volumio can play audio successfully before proceeding with the LCD installation.
+
+---
+
+# Stage 2 — Enable SSH
+
+The LCD installation requires command-line access.
+
+If a monitor and keyboard are attached directly to the Raspberry Pi, log in locally.
+
+Otherwise enable SSH through the Volumio development page:
+
+`http://volumio.local/dev`
+
+or substitute the hostname assigned to the player.
+
+Then connect from another computer:
 
 ```bash
-ssh volumio@volumioname.local. Remember to use the hostname you gave your OS in stage one. 
+ssh volumio@volumioname.local
 ```
-with password volumio.
 
-From the command line on your Monitor or from the ssh session on a terminal on your device, ping google.com to check that the Pi has an Internet connection. Once confirmed you may start the second stage VOLUMIO-LCD installation on your Pi from the command line on your attached Monitor or your device terminal window.
+Use the hostname assigned during the Volumio setup.
 
-To install the Volumio LCD package on your Pi, run the wget command below. This will download the bootstrap and installer files from the PIXIS Github repo, stage them on the Volumio system and then if the bootstrap download completed successfully it will launch the installer. The installer will prompt for the Volumio password (volumio) when it reaches the privileged system changes, which is normal.
+The normal initial Volumio SSH password is:
+
+`volumio`
+
+Before installing the LCD software, confirm that the Pi has Internet access:
+
+```bash
+ping google.com
+```
+
+Stop the test with `Ctrl-C`.
+
+---
+
+# Stage 3 — Install PIXIS VOLUMIO-LCD
+
+Run:
 
 ```bash
 wget -qO- https://raw.githubusercontent.com/PIXISREPO/PIXIS-PROJECTS/main/VOLUMIO-LCD/bootstrap.sh | bash -x && sudo /tmp/pixis/stage/VOLUMIO-LCD/install.sh
 ```
 
-A successful installation will complete with a message on the LCD.
+The bootstrap downloads the required PIXIS VOLUMIO-LCD files from this repository and stages them under:
 
-Volumio LCD
-Waiting for Playback
-
-Go to http://Pi-IP-address in the browser on your device. This browser window is your Volumio 'Controller' and from it you can navigate the Volumio User Interface and select your preferred music source. You can also install the Volumio App on your smart phone and 'Control' the Pi Player from that App.
-
-A full description of what the wget command does is below.
-
-
-## Contents
-
-- [Overview](#overview)
-- [Requirements](#requirements)
-- [Install flow](#install-flow)
-- [Boot config](#boot-config)
-- [Runtime packages](#runtime-packages)
-- [Service](#service)
-- [Security](#security)
-- [Troubleshooting](#troubleshooting)
-- [Developer notes](#developer-notes)
-
-## Overview
-
-This project installs the files needed to run a Waveshare 2.8" SPI LCD on a fresh Volumio 3 image. The display shows album art and related metadata in a simple always-on layout. The installer is designed to run unattended and complete all supported setup steps without user intervention.
-
-## Requirements
-
-### What the repo provides
-
-The following files are fetched by `bootstrap.sh` from the PIXISREPO GitHub repository and used to install and run the display stack:
-
-- `bootstrap.sh`
-- `install.sh`
-- `systemd/pixis-installer.service`
-- `systemd/volumio-lcd.service`
-- `scripts/pixis-installer.sh`
-- `scripts/PiInstaller.sh`
-- `waveshare-2.8/Python/*`
-- `config/userconfig.txt`
-- `config/volumioconfig.txt`
-- `README.md`
-
-### What the Volumio image needs
-
-These items must already exist on the Volumio image or will be installed during the first-run bootstrap:
-
-- SPI enabled in `/boot/userconfig.txt`
-- `dtoverlay=spi-spidev` in `/boot/userconfig.txt`
-- Python runtime packages:
-  - `python3-pil`
-  - `python3-spidev`
-  - `python3-numpy`
-  - `python3-gpiozero`
-
-### Why these are needed
-
-- `python3-pil` provides the `PIL` import used by the display code.
-- `python3-spidev` provides access to `/dev/spidev0.0`.
-- `python3-numpy` is imported by the Waveshare driver.
-- `python3-gpiozero` is imported by the LCD driver.
-- `dtparam=spi=on` and `dtoverlay=spi-spidev` expose the SPI device node required by the screen.
-
-## Install flow
-
-The installer runs automatically on a fresh Volumio 3 image:
-
-1. `bootstrap.sh` downloads the required files from the PIXISREPO GitHub repository and then hands off to install.sh
-2. `install.sh` copies the application files into place.
-3. `install.sh` writes the required SPI boot settings.
-4. `install.sh` installs the Python dependencies.
-5. `install.sh` checks for `/dev/spidev0.0`.
-6. If the device node is present, `volumio-lcd.service` is enabled and started.
-7. If the device node is not yet present, the installer completes its work, marks that a reboot is required, and exits cleanly.
-
-The bootstrap command should you wish to review it is 
-
-```bash
-bash bootstrap.sh
+```text
+/tmp/pixis/stage/VOLUMIO-LCD
 ```
 
-## Boot config
+The installer then performs the privileged installation steps.
 
-For a fresh Volumio 3 image, the installer writes the boot configuration directly. The target `/boot/userconfig.txt` will contain:
+The installer will request the Volumio password when `sudo` is reached. This is expected.
+
+## First reboot
+
+The installer enables SPI in `/boot/userconfig.txt`.
+
+If `/dev/spidev0.0` is not yet available, the installer records that a reboot is required and exits cleanly.
+
+Reboot:
+
+```bash
+sudo reboot
+```
+
+After reboot, the LCD service should start automatically.
+
+A successful idle display shows:
+
+```text
+Volumio LCD
+Waiting for Playback
+```
+
+Start playback from the Volumio interface.
+
+The LCD should then display album art and playback metadata.
+
+---
+
+# What the installer changes
+
+The installer adds the required SPI settings to:
+
+```text
+/boot/userconfig.txt
+```
+
+Required settings are:
 
 ```text
 dtparam=spi=on
 dtoverlay=spi-spidev
 ```
 
-These lines are required so the kernel exposes `/dev/spidev0.0`, which the Waveshare driver needs.
+The installer deliberately **does not overwrite `/boot/volumioconfig.txt`**.
 
-## Runtime packages
+Volumio owns that file and its existing configuration must be preserved.
 
-The installer installs the Python packages imported by the Waveshare driver and the display runtime:
+---
+
+# Runtime packages
+
+The installer installs the Python packages required by the Waveshare driver and PIXIS LCD application:
 
 - `python3-pil`
 - `python3-spidev`
-- `python3-numpy`
 - `python3-gpiozero`
+- `python3-numpy`
 
-These packages cover the import chain used by `volumio_lcd.py` and `LCD_2inch8.py`.
+These provide the dependencies used by `volumio_lcd.py` and `LCD_2inch8.py`.
 
-## Service
+---
 
-The main service is `volumio-lcd.service`, which runs:
+# LCD service
+
+The production service is:
 
 ```text
-/home/volumio/waveshare-2.8/Python/volumio_lcd.py
+volumio-lcd.service
 ```
 
-Should you need them here are some useful checks:
+It runs:
+
+```text
+/usr/bin/python3 /home/volumio/waveshare-2.8/Python/volumio_lcd.py
+```
+
+The service is enabled for automatic startup.
+
+Useful checks:
 
 ```bash
 systemctl status volumio-lcd.service --no-pager -l
-journalctl -u volumio-lcd.service -n 50 --no-pager
+systemctl is-enabled volumio-lcd.service
+journalctl -u volumio-lcd.service -n 50 --no-pager -l
 ls -l /dev/spidev*
 ```
 
-A healthy system will show the service active and the display in its 'VOLUMIO LCD Waiting-for-playback' state.
+A healthy installation should show:
 
-## Security
+- `/dev/spidev0.0`
+- `volumio-lcd.service` enabled
+- `volumio-lcd.service` active/running
+- LCD displaying `Waiting for Playback` while idle
+- album art and metadata while playing
 
-This project is designed for a trusted-network installation workflow on a fresh Volumio 3 image. The installer pulls all required files from the PIXISREPO GitHub repository during bootstrap, and that repository is the single source of truth for installer and runtime assets.
+---
 
-### Immutable files
+# Backlight — GPIO18
 
-The installer and runtime assets are treated as immutable source artifacts in the repository. The Volumio target consumes them as delivered, and the installer does not modify the repository itself.
+The Waveshare LCD backlight is controlled from:
 
-### What is and is not mutable
+- BCM GPIO: **GPIO18**
+- Raspberry Pi physical header pin: **12**
 
-- Mutable on the Volumio target: `/boot/userconfig.txt`, service enablement state, installed packages, and runtime logs.
-- Immutable from the repo side: `bootstrap.sh`, `install.sh`, systemd units, Python source, and the packaged assets fetched during bootstrap.
+The original Waveshare Python driver used `PWMOutputDevice` at approximately 1 kHz and an 80% duty cycle.
 
-### Practical guidance
+During PIXIS hardware testing on 15 August 2026, GPIO18 was examined with an oscilloscope. The PWM waveform showed timing jitter and the LCD exhibited visible backlight flicker.
 
-The source files in the PIXISREPO GitHub repository are the single source of truth. The Volumio target should only receive the staged files and the runtime changes needed to complete installation.
+The diagnosis was confirmed by holding GPIO18 continuously HIGH at approximately 3.3 V. The flicker disappeared.
 
-## Troubleshooting
+PIXIS does not currently require adjustable LCD brightness, so the verified driver uses GPIO18 as a fixed digital output:
 
-The installer should complete without prompting for manual recovery. If it cannot finish, it should report the reason clearly and stop.
+```python
+DigitalOutputDevice(BL_PIN, active_high=True, initial_value=True)
+```
 
-Typical reasons an install can fail:
+GPIO18 therefore remains HIGH while the LCD driver is active.
 
-- The required files could not be fetched from the PIXISREPO GitHub repository.
-- A required package could not be installed.
-- The boot config could not be written.
-- `/dev/spidev0.0` did not appear after the boot config was applied.
-- The service failed to start after installation.
+The compatibility brightness methods remain in the driver, but operation is effectively binary:
 
-If the installer reports failure, the message should include the reason and any known fix or next step.
+- `0` = backlight OFF
+- non-zero = backlight ON
 
-If the Python script fails immediately, run it manually to expose the exact traceback:
+Variable PWM brightness is intentionally disabled in this release.
+
+---
+
+# Repository structure
+
+The Volumio installer uses files under:
+
+```text
+VOLUMIO-LCD/
+```
+
+Important components include:
+
+```text
+bootstrap.sh
+install.sh
+systemd/pixis-installer.service
+systemd/volumio-lcd.service
+scripts/pixis-installer.sh
+scripts/PiInstaller.sh
+config/userconfig.txt
+waveshare-2.8/Python/
+```
+
+The active Volumio service is `systemd/volumio-lcd.service`.
+
+The earlier shared/template `volumio-lcd@.service` is not part of the current standalone Volumio installation.
+
+---
+
+# Volumio and moOde
+
+PIXIS previously explored sharing parts of the installation architecture between Volumio and moOde.
+
+That approach is no longer used.
+
+The two players have sufficiently different operating environments and installation requirements that they are maintained independently:
+
+```text
+VOLUMIO-LCD/
+MOODE-LCD/
+```
+
+Changes to one installer must not automatically be assumed appropriate for the other.
+
+---
+
+# Troubleshooting
+
+## Backlight on but no PIXIS display
+
+Check SPI:
+
+```bash
+ls -l /dev/spidev*
+```
+
+Then check the service:
+
+```bash
+systemctl status volumio-lcd.service --no-pager -l
+```
+
+## Service errors
+
+```bash
+journalctl -u volumio-lcd.service -n 50 --no-pager -l
+```
+
+## Test the Python application directly
+
+Stop the service first:
+
+```bash
+sudo systemctl stop volumio-lcd.service
+```
+
+Then:
 
 ```bash
 python3 /home/volumio/waveshare-2.8/Python/volumio_lcd.py
 ```
 
-## Developer notes
+Restart the service afterwards:
 
-This repo is intended for a clean-image workflow. The installer handles SPI setup early, before enabling the LCD service. That keeps the hardware prerequisite ahead of runtime service startup which should avoid any import and device-node failures. Should you experience problems please post an 'Issue'.
+```bash
+sudo systemctl start volumio-lcd.service
+```
 
+## Waiting for Playback
+
+`Waiting for Playback` is a normal idle state.
+
+If this screen is visible, the LCD hardware, SPI interface and display application are operating.
+
+Start playback in Volumio. Album art and metadata should replace the waiting screen.
+
+---
+
+# Known-good recovery points
+
+## Original verified Volumio 3.905 LCD baseline
+
+```text
+VOLUMIO-LCD-V3.905-KNOWN-GOOD-2026-08-15
+```
+
+Commit:
+
+```text
+9105d13
+```
+
+Verified:
+
+- clean installation
+- SPI
+- service autostart
+- Radio Paradise audio
+- album art
+- metadata
+
+This baseline retains the original PWM backlight behaviour.
+
+## Current verified baseline
+
+```text
+VOLUMIO-LCD-V3.905-KNOWN-GOOD-BACKLIGHT-FIX-2026-08-15
+```
+
+Commit:
+
+```text
+e863e34
+```
+
+This adds the hardware-tested fixed GPIO18 backlight and eliminates the observed PWM flicker.
+
+**This is the preferred Volumio 3.905 recovery point.**
+
+---
+
+# Development policy
+
+The local PIXIS repository and GitHub repository are maintained together as the source of truth for this project.
+
+Changes should be:
+
+1. tested on actual PIXIS hardware;
+2. copied back to the local repository;
+3. syntax checked where applicable;
+4. committed deliberately;
+5. pushed to GitHub;
+6. tagged when a new known-good recovery point has been established.
+
+Do not replace a hardware-tested known-good file merely because another repository version appears newer.
+
+For problems or reproducible defects, please open a GitHub Issue.
