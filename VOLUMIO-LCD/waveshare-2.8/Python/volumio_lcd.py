@@ -3,6 +3,8 @@ import io
 import os
 import time
 import json
+import socket
+import subprocess
 import traceback
 from urllib.parse import urljoin
 
@@ -138,19 +140,49 @@ def render_cover_screen(state, cover_img):
     return canvas
 
 
+def get_hostname():
+    try:
+        return socket.gethostname()
+    except Exception:
+        return "volumio"
+
+
+def get_ip_address():
+    try:
+        result = subprocess.check_output(
+            ["hostname", "-I"], timeout=3
+        ).decode().strip()
+        for ip in result.split():
+            if "." in ip:
+                return ip
+    except Exception:
+        pass
+
+    try:
+        return socket.gethostbyname(socket.gethostname())
+    except Exception:
+        return "unavailable"
+
+
 def render_idle_screen():
     canvas = Image.new("RGB", (WIDTH, HEIGHT), "black")
     draw = ImageDraw.Draw(canvas)
 
     line1 = "Volumio LCD"
-    line2 = "Waiting for playback"
+    line2 = "Host: " + get_hostname()
+    line3 = "IP: " + get_ip_address()
 
     w1, h1 = draw.textsize(line1, font=FONT_ARTIST)
     w2, h2 = draw.textsize(line2, font=FONT_INFO)
+    w3, h3 = draw.textsize(line3, font=FONT_INFO)
 
-    y = 130
-    draw.text(((WIDTH - w1) // 2, y), line1, font=FONT_ARTIST, fill="white")
-    draw.text(((WIDTH - w2) // 2, y + h1 + 12), line2, font=FONT_INFO, fill=(180, 180, 180))
+    y = 105
+    draw.text(((WIDTH - w1) // 2, y), line1,
+              font=FONT_ARTIST, fill="white")
+    draw.text(((WIDTH - w2) // 2, y + h1 + 15), line2,
+              font=FONT_INFO, fill=(180, 180, 180))
+    draw.text(((WIDTH - w3) // 2, y + h1 + h2 + 30), line3,
+              font=FONT_INFO, fill=(180, 180, 180))
 
     return canvas
 

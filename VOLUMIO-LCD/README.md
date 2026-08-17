@@ -1,10 +1,12 @@
 # PIXIS Volumio LCD Album Art Display
 
+**Current release: VOLUMIO-LCD v1.0.0**
+
 A PIXIS installer and runtime for the Waveshare 2.8" SPI LCD (SKU 27579) running with Volumio 3.
 
 The display provides an appliance-style front panel showing album art and playback metadata from the currently selected Volumio music source.
 
-> **Verified baseline — 15 August 2026**
+> **VOLUMIO-LCD v1.0.0 — verified 17 August 2026**
 >
 > Tested with **Volumio 3.905** and the Waveshare 2.8" SPI LCD.
 >
@@ -19,10 +21,11 @@ The display provides an appliance-style front panel showing album art and playba
 > - album art displayed
 > - playback metadata displayed
 > - fixed GPIO18 backlight with no visible flicker
+> - hostname and IPv4 address displayed on the startup/idle screen
 >
-> Current known-good tag:
+> Release tag:
 >
-> `VOLUMIO-LCD-V3.905-KNOWN-GOOD-BACKLIGHT-FIX-2026-08-15`
+> `VOLUMIO-LCD-v1.0.0`
 
 The earlier pre-backlight-fix baseline is retained as:
 
@@ -153,11 +156,12 @@ sudo reboot
 
 After reboot, the LCD service should start automatically.
 
-A successful idle display shows:
+A successful startup/idle display shows:
 
 ```text
 Volumio LCD
-Waiting for Playback
+Host: <hostname>
+IP: <IPv4 address>
 ```
 
 Start playback from the Volumio interface.
@@ -230,7 +234,7 @@ A healthy installation should show:
 - `/dev/spidev0.0`
 - `volumio-lcd.service` enabled
 - `volumio-lcd.service` active/running
-- LCD displaying `Waiting for Playback` while idle
+- LCD displaying hostname and IPv4 address on the startup/idle screen
 - album art and metadata while playing
 
 ---
@@ -351,13 +355,13 @@ Restart the service afterwards:
 sudo systemctl start volumio-lcd.service
 ```
 
-## Waiting for Playback
+## Startup / idle screen
 
-`Waiting for Playback` is a normal idle state.
+Before playback has begun, the LCD displays the Volumio LCD title together with the player's hostname and IPv4 address.
 
 If this screen is visible, the LCD hardware, SPI interface and display application are operating.
 
-Start playback in Volumio. Album art and metadata should replace the waiting screen.
+Start playback in Volumio. Album art and metadata should replace the startup/idle screen.
 
 ---
 
@@ -386,7 +390,7 @@ Verified:
 
 This baseline retains the original PWM backlight behaviour.
 
-## Current verified baseline
+## Backlight-fix verified baseline
 
 ```text
 VOLUMIO-LCD-V3.905-KNOWN-GOOD-BACKLIGHT-FIX-2026-08-15
@@ -400,7 +404,7 @@ e863e34
 
 This adds the hardware-tested fixed GPIO18 backlight and eliminates the observed PWM flicker.
 
-**This is the preferred Volumio 3.905 recovery point.**
+**This remains a historical recovery point. VOLUMIO-LCD v1.0.0 supersedes it as the current release.**
 
 ---
 
