@@ -35,14 +35,20 @@ def reset_touch():
     GPIO.output(TP_RST, 0)
     time.sleep(0.001)
     GPIO.output(TP_RST, 1)
-    time.sleep(0.05)
+    time.sleep(0.25)
 
 def read_nbyte(reg, num_bytes):
     bus.write_byte_data(CST328_ADDRESS, (reg >> 8) & 0xFF, reg & 0xFF)
     return [bus.read_byte(CST328_ADDRESS) for _ in range(num_bytes)]
 
-def write_nbyte(reg, val):
-    bus.write_byte_data(CST328_ADDRESS, (reg >> 8) & 0xFF, ((reg & 0xFF) << 8) | (val & 0xFF))
+def write_register(reg, val):
+    # Three-byte register write: address high, address low, data.
+    # The D005 clear operation itself remains undocumented by the datasheet.
+    bus.write_i2c_block_data(
+        CST328_ADDRESS,
+        (reg >> 8) & 0xFF,
+        [reg & 0xFF, val & 0xFF]
+    )
 
 def irq_valid():
     samples = []
@@ -56,7 +62,7 @@ def irq_valid():
     return highs >= IRQ_REQUIRED_HIGH
 
 def read_d005():
-    return read_nbyte(0xD005, 1)[0] & 0x0F
+    return read_nbyte(0xD005, 1)[0] & 0x7F
 
 def wait_touch_ready():
     start = time.monotonic()
@@ -71,10 +77,17 @@ def wait_touch_ready():
     return False
 
 def read_xy_packet():
-    buf = read_nbyte(0xD000, 27)
+    buf = read_nbyte(0xD000, 28)
+
+    if buf[6] != 0xAB or buf[0] == 0xAB:
+        return None
+
+    if (buf[0] & 0x0F) != 0x06:
+        return None
+
     x = ((buf[1] << 4) + ((buf[3] & 0xF0) >> 4))
     y = ((buf[2] << 4) + (buf[3] & 0x0F))
-    points = read_d005()
+    points = buf[5] & 0x7F
     return x, y, points
 
 def coord_close(a, b, delta):
@@ -85,16 +98,28 @@ def read_stable_xy():
     samples = []
     while (time.monotonic() - start) < XY_TIMEOUT_SEC:
         s = read_xy_packet()
+
+        if s is None:
+            log('xy=invalid')
+            time.sleep(XY_POLL_DELAY)
+            continue
+
         samples.append(s)
         log(f'xy={s[0]},{s[1]},{s[2]}')
+
         if len(samples) >= XY_STABLE_REQUIRED:
             tail = samples[-XY_STABLE_REQUIRED:]
             base = tail[0]
-            if all(coord_close(base, s, XY_DRIFT_DELTA) for s in tail[1:]):
-                xs = [s[0] for s in tail]
-                ys = [s[1] for s in tail]
-                ps = [s[2] for s in tail]
-                return sorted(xs)[len(xs)//2], sorted(ys)[len(ys)//2], max(set(ps), key=ps.count)
+            if all(coord_close(base, sample, XY_DRIFT_DELTA) for sample in tail[1:]):
+                xs = [sample[0] for sample in tail]
+                ys = [sample[1] for sample in tail]
+                ps = [sample[2] for sample in tail]
+                return (
+                    sorted(xs)[len(xs)//2],
+                    sorted(ys)[len(ys)//2],
+                    max(set(ps), key=ps.count)
+                )
+
         time.sleep(XY_POLL_DELAY)
     return None
 
@@ -113,8 +138,10 @@ try:
     reset_touch()
     log('ready')
     last_state = int(GPIO.input(TP_INT))
+
     while True:
         state = int(GPIO.input(TP_INT))
+
         if state == 1 and last_state == 0:
             if irq_valid() and wait_touch_ready():
                 xy = read_stable_xy()
@@ -122,13 +149,15 @@ try:
                     x, y, points = xy
                     zone = zone_for_xy(x, y)
                     log(f'zone={zone} x={x} y={y} points={points}')
-                    write_nbyte(0xD005, 0)
+                    write_register(0xD005, 0)
                 else:
                     log('xy=unstable')
             else:
                 log('d005=timeout')
+
         last_state = state
         time.sleep(0.001)
+
 except KeyboardInterrupt:
     pass
 finally:

@@ -1,139 +1,174 @@
-# CST328 Touch Capture for Waveshare 2.8" LCD
+# PIXIS CST328 Touch Capture
 
-This repository contains the Python touch capture code used to interface the CST328 capacitive touch controller on a Waveshare 2.8" Capacitive Touch LCD (SKU 27579) connected by SPI and I2C to a Raspberry Pi SBC.
+Python touch-capture and zone-mapping code for the CST328 capacitive-touch controller used with the PIXIS/Waveshare 2.8-inch display work.
 
-The final goal was not simply to read touch data, but to build a robust capture pipeline that reliably identifies valid touches, maps them to specific zones on the LCD and keeps enough tolerance for real-world finger placement and controller timing.
+The production capture script is `touch_capture_final.py`.
 
-## What this project does
+## Status
 
-The code:
-- Detects touch events from the CST328.
-- Validates the interrupt line.
-- Waits for the CST328 X, Y coordinates report to become ready.
-- Reads stable X/Y coordinates.
-- Maps the touch to a named artwork zone.
-- Logs one accepted touch event per capture.
+This revision incorporates datasheet-backed corrections reviewed on 17 August 2026 while deliberately retaining the existing hardware-validated IRQ and coordinate-stability behaviour.
 
-The final working capture script is:
+This is a narrow correction release, not an IRQ redesign or gesture-layer rewrite.
 
-- `touch_capture_final.py`
+## Acknowledgement
 
-## Why this was needed
+Special thanks to **@nerd** for his careful independent review of the CST328 implementation and for turning the CST328 datasheet details into specific, testable corrections. His follow-up analysis corrected the reset-timing interpretation, confirmed the X/Y packing, identified the documented packet validity fields, clarified the D005 finger-count field, and distinguished CST328 address-only commands from register writes.
 
-The CST328 is a capable touch controller, but in practice it does not behave like a simple button. It reports data over I2C, uses IRQ as a notification signal, and can produce edge timing that is not immediately obvious from the datasheet alone [file:1874].
+Those contributions materially improved the precision of this driver and its documentation.
 
-We needed to solve several practical problems:
-- Determine the correct IRQ polarity for the board path.
-- Understand when `D005` becomes valid.
-- Decide how much X/Y drift to accept.
-- Validate the physical artwork zones on the LCD.
-- Avoid missing real taps while still keeping output reliable.
+## Changes in this revision
 
-In other words, the project was about turning a touch controller into a dependable input path for a real user interface, not just proving that I2C reads worked [file:1874].
+### Reset timing
 
-## How it works
+The reset pulse remains 1 ms.
 
-The final capture flow is:
+The post-reset recovery delay changes from 50 ms to 250 ms. The datasheet indicates approximately 200 ms for re-initialisation after reset, so 250 ms provides margin before the first I2C transaction.
 
-1. Wait for an IRQ edge.
-2. Sample the IRQ line to confirm it is a real event.
-3. Poll `D005` until it shows a non-zero finger count.
-4. Read the touch packet from `D000`.
-5. Read several samples and accept the touch only when X/Y are stable enough.
-6. Convert the coordinate to an artwork zone.
-7. Emit one accepted event.
-8. Clear `D005` so the controller can re-arm for the next touch.
+### Packet validation
 
-The CST328 datasheet describes IRQ as the host notification mechanism and `D005` as the finger-number/report flag in normal mode, which matches the approach above [file:1874].
+`read_xy_packet()` now reads 28 bytes from `0xD000` and rejects a report unless:
 
-## Zone layout
+- `buf[6] == 0xAB`, the documented fixed marker at `0xD006`;
+- `(buf[0] & 0x0F) == 0x06`, the documented pressed status.
 
-The project does not use a generic grid label scheme. Instead, it uses the artwork layout shown in the spreadsheet image:
+### X/Y parsing
 
-- A1: top-left.
-- A2: top-right.
-- A3: middle-left.
-- A4: middle-right.
-- B1: bottom-left.
-- B2: bottom-centre.
-- B3: bottom-right.
+The existing X/Y arithmetic was confirmed and is unchanged:
 
-This mapping was verified in the corner and bottom-zone tests, and the final label logic matches the intended artwork layout.
+```python
+x = ((buf[1] << 4) + ((buf[3] & 0xF0) >> 4))
+y = ((buf[2] << 4) + (buf[3] & 0x0F))
+```
 
-## Final capture behavior
+### Finger count
 
-The final code was intentionally tuned to be permissive at capture time:
-- It accepts active-high IRQ behavior for this board path.
-- It uses `D005` as the real touch-valid gate.
-- It allows a relaxed X/Y drift window.
-- It keeps duplicates out of the critical path for now.
+The redundant second D005 read inside `read_xy_packet()` has been removed.
 
-That was deliberate. It is better to capture a slightly noisy stream than to lose real touches, especially because duplicates can be handled later in the next stage.
+The count now comes from the packet itself:
 
-## Test scripts used during development
+```python
+points = buf[5] & 0x7F
+```
 
-Several small scripts were written while debugging the controller. These are worth keeping in the repo because they document the path to the final solution and can be reused when hardware changes.
+Bit 7 is the documented button flag.
 
-### `int_test.py`
+PIXIS is likely to use no more than two simultaneous touches, but the low-level parser deliberately reports the controller's real count. Any two-touch product limit belongs upstream in the gesture/application layer.
 
-This was the key discovery script.
+### Invalid packet handling
 
-It was used to inspect the raw IRQ line timing and determine whether the touch signal was acting as active-high or active-low in the actual hardware path. That test was fundamental in changing the capture logic from a low-based assumption to an active-high one.
+`read_xy_packet()` may now return `None`.
 
-### `test1.py`
+`read_stable_xy()` skips invalid/non-pressed reports safely and still requires the existing number of valid stable samples.
 
-This script captured short IRQ windows and helped confirm that the signal was mostly high during touch activity, with only brief low blips around transitions.
+### Register-write helper
 
-### `test2.py`
+The old helper did not correctly represent a one-byte write to a 16-bit register address.
 
-This extended the same idea and helped validate the IRQ behavior across multiple short and long touches.
+The new helper uses:
 
-### `int_v36.py`
+```python
+bus.write_i2c_block_data(
+    CST328_ADDRESS,
+    (reg >> 8) & 0xFF,
+    [reg & 0xFF, val & 0xFF]
+)
+```
 
-This version added lightweight debug around:
-- IRQ validation,
-- `D005` readiness,
-- and X/Y stability.
+## D005 clear caveat
 
-It helped identify which stage of the capture pipeline was failing.
+The existing capture path clears `0xD005` after an accepted touch.
 
-### `int_v38.py`
+That behaviour is retained in this revision to avoid changing the established re-arm behaviour at the same time as the datasheet corrections.
 
-This became the first really usable capture version after IRQ polarity and `D005` handling were corrected. It reliably produced stable touch coordinates.
+However, the CST328 datasheet does **not** document a D005 clear operation. The corrected helper makes the intended write transaction valid; it does not establish that the clear is required.
 
-## Development notes
+This remains a hardware-validation question.
 
-A few important lessons came out of the work:
-- IRQ should be treated as an event hint, not the final truth.
-- `D005` is the better gate for touch data readiness.
-- Real finger touches jitter, so X/Y should be validated with a tolerance rather than requiring exact repeated values.
-- The artwork zone map should reflect the UI design, not a generic numeric grid.
-- Duplicate hits are acceptable at capture time if the next processing stage can dedupe them later.
+## Deliberately unchanged
 
-## Repository contents
+The following are not changed in this revision:
 
-Suggested files to include:
+- rising-edge / active-high IRQ behaviour;
+- IRQ sample counts;
+- D005 readiness polling;
+- three-sample X/Y stability;
+- X/Y drift tolerance;
+- artwork zone mapping;
+- duplicate-event policy;
+- panel-resolution auto-detection;
+- kernel-driver integration;
+- gesture interpretation;
+- a two-finger application limit.
 
-- `touch_capture_final.py` - final production capture script.
-- `int_test.py` - raw IRQ discovery script.
-- `test1.py` - IRQ timing capture script.
-- `test2.py` - extended IRQ timing capture script.
-- `int_v36.py` - debug capture version.
-- `int_v38.py` - stable capture version before final cleanup.
-- `README.md` - this document.
+These should be tested independently.
 
-## Hardware context
+## Current capture flow
 
-This code was developed for a CST328 touch controller used with a Raspberry Pi and a Waveshare 2.8" LCD. The CST328 datasheet confirms the controller provides I2C touch data, an IRQ line, and normal-mode finger reporting via `D005`, which is the basis of this implementation [file:1874].
+1. Wait for the currently validated rising IRQ transition.
+2. Confirm the IRQ with the existing sampling rule.
+3. Poll D005 for readiness.
+4. Read the 28-byte normal-mode report from D000.
+5. Validate the fixed `0xAB` marker.
+6. Validate pressed status `0x06`.
+7. Decode X, Y and finger count from the same packet.
+8. Require the existing stable valid X/Y samples.
+9. Map the touch to the PIXIS artwork zone.
+10. Log the accepted event.
+11. Perform the existing D005 clear using the corrected register-write helper.
 
-## License
+## Zone mapping
 
-Choose the license that fits your repo before publishing. If this is intended for open-source reuse, add a standard license file such as MIT or BSD-3-Clause.
+The verified zone mapping is unchanged:
 
-## Future work
+- A1 — top-left
+- A2 — top-right
+- A3 — middle-left
+- A4 — middle-right
+- B1 — bottom-left
+- B2 — bottom-centre
+- B3 — bottom-right
 
-Possible next steps:
-- Add debounce/deduplication in the consumer stage.
-- Add optional calibration offsets if the physical mounting changes.
-- Add support for richer touch gestures if needed.
-- Add a small zone test utility for future hardware revisions.
+## Hardware constants
+
+- CST328 7-bit I2C address: `0x1A`
+- Touch IRQ: BCM GPIO `4`
+- Touch reset: BCM GPIO `17`
+
+The documented default 8-bit I2C pair `0x34/0x35` corresponds to 7-bit address `0x1A`.
+
+## Follow-up experiments
+
+These are worth testing separately, but are not production changes in this revision:
+
+- falling-edge IRQ timing versus current rising-edge behaviour;
+- reducing stability sampling now that packet-validity fields are checked;
+- operation with and without the undocumented D005 clear;
+- reading panel resolution from `0xD1F8`.
+
+## Historical development
+
+Earlier hardware work established that:
+
+- `int_test.py` was fundamental to understanding the IRQ behaviour;
+- D005 readiness polling improved capture reliability;
+- X/Y drift tolerance was widened to preserve genuine taps;
+- the A1/A2/A3/A4 + B1/B2/B3 artwork map was verified;
+- duplicates are acceptable at capture time and can be handled upstream.
+
+The new datasheet-backed validation supplements those observations rather than replacing them.
+
+## Validation before release
+
+Before this revision becomes a new known-good GitHub baseline, verify on target hardware:
+
+- clean start after reset;
+- repeated single-finger taps;
+- all artwork zones;
+- rapid taps;
+- press/release behaviour;
+- no increase in missed touches;
+- correct finger-count logging;
+- continued re-arming after the D005 clear;
+- duplicate behaviour remains acceptable.
+
+Only after hardware validation should the corrected files be committed as the production versions and tagged as known-good.
