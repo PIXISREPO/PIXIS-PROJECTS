@@ -1,5 +1,7 @@
 # PIXIS CST328 Touch Capture
 
+**Standalone touch-capture component.** This folder is a technical reference, not the current Volumio 4 touchscreen player. For the current build guide, go to [PIXIS Volumio Touch](https://github.com/PIXISREPO/VOLUMIO-4-TOUCH).
+
 Python touch-capture and zone-mapping code for the CST328 capacitive-touch controller used with the PIXIS/Waveshare 2.8-inch display work.
 
 The production capture script is `touch_capture_final.py`.
