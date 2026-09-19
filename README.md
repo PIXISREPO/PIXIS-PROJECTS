@@ -1,15 +1,29 @@
-# PIXIS-PROJECTS
+# PIXIS Projects
 
-This is the PIXIS Projects repository.
+## Latest PIXIS Volumio Touch project
 
-PIXIS is an open source hardware and software modular platform for Raspberry Pi and similar SBC-based projects. The project is designed to support multiple use cases, including audio, smart home hubs, dashboards, and custom embedded builds.
+**[Open PIXIS Volumio Touch for Volumio 4 →](https://github.com/PIXISREPO/VOLUMIO-4-TOUCH)**
 
-These can be built on a Pixis CB-1 Carrier Board with a Pi Zero 2W or Pi 3A+ or a CB-2 Carrier Board with a Pi 3, Pi 4 or Pi 5, housed in the Pixis Extruded Aluminium case available from the Pixis Store at https://pixis.uk. Supports Raspberry Pi compatible 40 Pin HATS, Grove and QWIIC expansion cards and Waveshare 2.8 inch SPI and DSI LCDs.
+The current CB-1 touchscreen music-player guide has its own repository: **VOLUMIO-4-TOUCH**. It covers Raspberry Pi 3A+ and Zero 2 W using foonerd’s rpi-waveshare28 software.
 
-## Projects
+Start there for a new Volumio 4 build. The similarly named folders below contain earlier PIXIS software or separate component work.
 
-### 1. MOODE-LCD & VOLUMIO-LCD
-Displays album art and ARTIST / ALBUM / TRACK metadata on a Waveshare 2.8 inch SPI LCD (SKU27579). Supports both Volumio 3 and moOde Audio. The installers prompt for player selection and then configures the appropriate services and dependencies automatically.
+## Other projects and earlier work
 
-### 2. PIXIS-TOUCH (WIP)
-Touch screen zone capture script for the Waveshare display. Capture only at this stage; a downstream UI using the output of the LCD-Touch App is work in progress.
+| Folder | Purpose |
+|---|---|
+| [MOODE-LCD](MOODE-LCD/) | Separate moOde Audio display project. |
+| [VOLUMIO-LCD](VOLUMIO-LCD/) | Earlier PIXIS Python display for **Volumio 3.905**. Retained for existing installations and recovery. |
+| [PIXIS-TOUCH](PIXIS-TOUCH/) | Standalone CST328 touch-capture component and technical reference. |
+| [VOLUMIO-TOUCH](VOLUMIO-TOUCH/) | Earlier Python touchscreen development, including mute experiments and Waveshare setup files. |
+| [EO-OS-BRIDGE-TEST](EO-OS-BRIDGE-TEST/) | Repository integration test material. |
+
+The current Volumio 4 project is not inside either `PIXIS-TOUCH` or `VOLUMIO-TOUCH`. You do not need those folders to follow its guide.
+
+Earlier file paths are retained so existing download links, installers and recovery references continue to work.
+
+## About PIXIS
+
+PIXIS is an open-source modular hardware and software platform for Raspberry Pi and similar single-board computers. Projects include audio players, smart-home hubs, dashboards and custom embedded builds.
+
+Visit [PIXIS](https://pixis.uk) for the platform and hardware.
