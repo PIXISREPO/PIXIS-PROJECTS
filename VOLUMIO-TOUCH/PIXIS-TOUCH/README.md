@@ -1,5 +1,7 @@
 # CST328 Touch Capture for Waveshare 2.8" LCD
 
+**Earlier touchscreen development.** For the current Volumio 4 build guide, go to [PIXIS Volumio Touch](https://github.com/PIXISREPO/VOLUMIO-4-TOUCH). The historical notes below describe earlier work; they are not the current installation instructions.
+
 This repository contains the Python touch capture code used to interface a CST328 capacitive touch controller with a Waveshare 2.8" LCD setup on Raspberry Pi.
 
 The final goal was not simply to read touch data, but to build a robust capture pipeline that reliably identifies valid touches, maps them to artwork zones, and keeps enough tolerance for real-world finger placement and controller timing.
