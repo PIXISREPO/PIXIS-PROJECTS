@@ -1,5 +1,7 @@
 # PIXIS Volumio LCD Album Art Display
 
+**Volumio 3 project.** For a new Volumio 4 touchscreen build, use the separate [PIXIS Volumio Touch repository](https://github.com/PIXISREPO/VOLUMIO-4-TOUCH). This older release remains available for existing installations and recovery.
+
 **Current release: VOLUMIO-LCD v1.0.0**
 
 A PIXIS installer and runtime for the Waveshare 2.8" SPI LCD (SKU 27579) running with Volumio 3.
