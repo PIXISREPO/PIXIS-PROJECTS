@@ -4,8 +4,6 @@
 
 *The working ESP32-C5 Audio Player. Photograph supplied by Peter; perspective-corrected, cropped and lightly retouched. Display content has not been replaced. This photograph shows the panel interface, not the complete CB-1 assembly.*
 
-> **Review-branch upload in progress:** text files are uploaded through the GitHub connection. The firmware binary and photographs require a separate browser upload; their links will become available when that step is complete.
-
 **CB-1 + Waveshare ESP32-C5-Touch-LCD-2.8 + Waveshare PCM5122 Audio Board (A). No Raspberry Pi fitted.**
 
 Status: **working bench project; installation documentation in development**.
@@ -87,4 +85,4 @@ The original licence limits commercial incorporation/distribution without a
 separate written agreement. Do not present this as commercially cleared firmware.
 
 Private signing keys, flash backups and real network credentials must never be
-added to this project. This is a preparation package, not a published GitHub release.
+added to this project. This is a review-branch project, not a versioned firmware release.
