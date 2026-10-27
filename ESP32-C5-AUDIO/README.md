@@ -14,8 +14,8 @@ release-acceptance test or a guarantee for every PCM5122 HAT.
 
 The panel runs a PCM5122 adaptation of @nerd / foonerd's
 [evo-esp32](https://github.com/foonerd/evo-esp32) player. The original SD-card
-configuration and Wi-Fi startup are retained. This is not Volumio running on an
-ESP32, and is separate from the PIXIS Raspberry Pi / Volumio display projects.
+configuration and Wi-Fi startup are retained. For configuration details please see https://github.com/foonerd/evo-esp32/wiki/Configuration
+This is not Volumio running on an ESP32, and is separate from the PIXIS Raspberry Pi / Volumio display projects.
 
 ## Start here
 
