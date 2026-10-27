@@ -1,0 +1,19 @@
+{
+  "base_repository": "https://github.com/foonerd/evo-esp32",
+  "base_commit": "e446e9e870a5ce0df273c7121c6fd756b8cbe15a",
+  "companion_commit": "c73cb2bd21a520502155f5126082e2e52fdb9227",
+  "target": "riscv32imac-esp-espidf",
+  "rust": "nightly-2026-10-17",
+  "esp_idf": "v5.5.5",
+  "esptool": "5.6.0",
+  "version": "0.2.0",
+  "build_id": "unknown (built from source ZIP without git metadata)",
+  "purpose": "PCM5122 DAC+ bench firmware, untested on hardware",
+  "flash_address": "0x0",
+  "flash_size": "32MB",
+  "bootloader_offset": "0x2000",
+  "app_offset": "0x20000",
+  "hardware_secure_boot_enabled": false,
+  "efuse_operations": "none",
+  "private_signing_key_included_in_this_archive": false
+}

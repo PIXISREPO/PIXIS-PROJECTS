@@ -1,0 +1,10 @@
+# Copy to the ROOT of the panel's FAT32 microSD card as evoconfig.txt.
+# Prefer your existing working configuration if you already have one.
+# Use a plain-text editor; no inline comments after values.
+name = pixis-player
+wifi_ssid = YOUR_WIFI_SSID
+wifi_password = YOUR_WIFI_PASSWORD
+wifi_band = auto
+volume = 10
+
+# Credentials are stored on the card in plain text. Do not commit the real file.

@@ -1,0 +1,12 @@
+Packaging verification PASSED
+Chip: ESP32-C5; flash: 32 MB; mode: DIO; frequency: 80 MHz
+Merged factory image flash address: 0x0
+Bootloader inside merged image: 0x2000 (from ESP-IDF flasher_args.json)
+Partition table: 0x8000
+Signed application: 0x20000
+Bootloader, table and signed app match their merged regions byte for byte.
+Application fits factory partition; OTA-selection region is erased padding.
+PCM5122 driver log string is present in application.
+Factory size: 4653056 bytes
+Factory SHA256: c9ecb1ea4a2d40cae7b9a4d475ee62ead60731556096baa21e01e1e18f5a9a35
+Hardware validation: NOT performed.

@@ -1,0 +1,15 @@
+# Private information and local build output
+*.pem
+*.key
+*.p12
+*.pfx
+*.backup.bin
+panel-before-*.bin
+evoconfig.txt
+private/
+.env
+.env.*
+.DS_Store
+__pycache__/
+target/
+.embuild/
