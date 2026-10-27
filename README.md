@@ -8,6 +8,17 @@ The current CB-1 touchscreen music-player guide has its own repository: **VOLUMI
 
 Start there for a new Volumio 4 build. The similarly named folders below contain earlier PIXIS software or separate component work.
 
+## ESP32-C5 Audio Player — working bench project
+
+**[Open the ESP32-C5 Audio Player project →](ESP32-C5-AUDIO/)**
+
+CB-1 v2.8 with the Waveshare ESP32-C5-Touch-LCD-2.8 and an external audio DAC,
+without a Raspberry Pi. One common installation guide with DAC-specific firmware
+options: original configuration, PCM5122 (reported working), and PCM5242 (planned).
+Assembly documentation is in development. Binary and photo uploads are being
+completed on this review branch. Third-party firmware retains its upstream
+Business Source License 1.1, not this repository's MIT licence.
+
 ## Other projects and earlier work
 
 | Folder | Purpose |
