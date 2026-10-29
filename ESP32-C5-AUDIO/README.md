@@ -61,7 +61,7 @@ Raspberry Pi DAC+ installation**. The supplied image has not been rebuilt or re-
 
 This is @nerd's original **v0.2.0** card package, linked directly from his release,
 not a separate PIXIS card image. It is the common configuration/media layout for
-the Original and PCM5122 builds, and the intended layout for the planned PCM5242
+the original PCM5102A and PCM5122 builds, and the intended layout for the planned PCM5242
 build. PCM5242 compatibility cannot be bench-confirmed until that firmware exists.
 There is **no DAC-specific SD-card build** to choose.
 
