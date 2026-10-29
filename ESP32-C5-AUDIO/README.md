@@ -14,12 +14,12 @@ are shared. You do **not** need to build or install @nerd's original project fir
 Based on **Just a Nerd / @nerd / foonerd's [evo-esp32](https://github.com/foonerd/evo-esp32)**.
 PIXIS adds the CB-1 integration and the PCM5122 adaptation. The upstream repository
 and [configuration wiki](https://github.com/foonerd/evo-esp32/wiki/Configuration)
-remain the references for a deeper dive. This is not Volumio running on an ESP32.
+remain the references for a deeper dive into foonerds evo-esp32 project. This is not Volumio running on an ESP32.
 
 ## 1. Choose your firmware
 
 These are the three named options for this project, **not three completed PIXIS
-releases**. The original and PCM5122 binaries are available below; the PCM5242
+releases**. Foonerd's original PCM5102A and the PIXIS PCM5122 binaries are available below; the PCM5242
 variant still needs development and hardware validation.
 
 | Firmware name | DAC / audio board | Binary download | Current status |
